@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap");
 
 * {
     box-sizing: border-box;
@@ -13,6 +13,12 @@ body {
     background: linear-gradient(135deg, #faf7ff, #f7fbff);
 }
 
+button,
+input,
+textarea {
+    font-family: inherit;
+}
+
 .page-header {
     margin-bottom: 32px;
     text-align: center;
@@ -20,10 +26,9 @@ body {
 
 .page-header h1 {
     margin: 0 0 10px;
-    color: black;
+    color: #000000;
     font-size: 36px;
 }
-
 
 .page-header p {
     margin: 0;
@@ -37,17 +42,20 @@ body {
     gap: 24px;
     width: min(1400px, 100%);
     margin: 0 auto;
-    align-items: start;
+
+    /* هر سه ستون هم‌ارتفاع می‌شوند */
+    align-items: stretch;
 }
 
 .column {
-    min-height: 480px;
+    min-height: 700px;
+    height: 100%;
     padding: 24px;
     border-radius: 20px;
     background: #ffffff;
 }
 
-/* راست: افزودن تسک */
+/* ستون افزودن تسک */
 
 .add-column {
     border: 1px solid #69bd96;
@@ -58,7 +66,7 @@ body {
     color: #388a65;
 }
 
-/* وسط: تسک‌های انجام‌نشده */
+/* ستون تسک‌های انجام‌نشده */
 
 .pending-column {
     border: 1px solid #e67c7c;
@@ -69,11 +77,11 @@ body {
     color: #b94444;
 }
 
-/* چپ: تسک‌های انجام‌شده */
+/* ستون تسک‌های انجام‌شده */
 
 .completed-column {
     border: 1px solid #e1bf46;
-    box-shadow: 0 10px 26px rgba(105, 189, 150, 0.314);
+    box-shadow: 0 10px 26px rgba(225, 191, 70, 0.314);
 }
 
 .completed-column h2 {
@@ -94,10 +102,11 @@ body {
 .todo-form label {
     color: #51495e;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 700;
 }
 
-.todo-form input {
+.todo-form input,
+.todo-form textarea {
     width: 100%;
     padding: 13px 14px;
     border: 1px solid #ded8e6;
@@ -106,12 +115,23 @@ body {
     background: #ffffff;
     color: #332f3b;
     font: inherit;
-    transition: 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.todo-form input:focus {
+.todo-form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.todo-form input:focus,
+.todo-form textarea:focus {
     border-color: #69bd96;
-    box-shadow: 0 0 0 4px rgba(211, 173, 40, 0.12);
+    box-shadow: 0 0 0 4px rgba(105, 189, 150, 0.12);
+}
+
+.date-input {
+    direction: ltr;
+    text-align: right;
 }
 
 .todo-form > button {
@@ -122,11 +142,10 @@ body {
     background: #69bd96;
     color: #ffffff;
     font: inherit;
-    font-weight: bold;
+    font-weight: 700;
     cursor: pointer;
-    transition: 0.2s;
+    transition: background 0.2s;
 }
-
 
 .todo-form > button:hover {
     background: #388a65;
@@ -149,9 +168,23 @@ body {
     background: #ffffff;
 }
 
+.task-content {
+    min-width: 0;
+    flex: 1;
+}
+
 .task-card h3 {
     margin: 0;
     font-size: 16px;
+    overflow-wrap: anywhere;
+}
+
+.task-description {
+    margin: 8px 0 0;
+    color: #77717f;
+    font-size: 14px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
 }
 
 .pending-card {
@@ -163,8 +196,18 @@ body {
 }
 
 .completed-card h3 {
-    color: #777;
+    color: #777777;
     text-decoration: line-through;
+}
+
+.completed-card .task-description {
+    color: #999999;
+    text-decoration: line-through;
+}
+
+.task-action {
+    flex-shrink: 0;
+    margin: 0;
 }
 
 .task-card button {
@@ -174,7 +217,7 @@ body {
     color: #ffffff;
     font: inherit;
     font-size: 13px;
-    font-weight: bold;
+    font-weight: 700;
     cursor: pointer;
 }
 
@@ -194,6 +237,35 @@ body {
     background: #388c65;
 }
 
+.task-dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 12px;
+}
+
+.task-dates p {
+    margin: 0;
+    padding: 5px 8px;
+    border-radius: 7px;
+    background: #f5f2f8;
+    color: #736c7c;
+    font-size: 12px;
+}
+
+.task-dates strong {
+    color: #51495e;
+}
+
+.task-dates .deadline-date {
+    color: #b94444;
+    background: #fff0f0;
+}
+
+.task-dates .deadline-date strong {
+    color: #b94444;
+}
+
 .empty-message {
     padding: 22px 12px;
     border: 1px dashed #d8d1df;
@@ -209,6 +281,7 @@ body {
 
     .column {
         min-height: auto;
+        height: auto;
     }
 }
 
@@ -228,5 +301,10 @@ body {
     .task-card {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .task-action,
+    .task-card button {
+        width: 100%;
     }
 }

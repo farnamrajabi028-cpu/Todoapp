@@ -7,5 +7,23 @@ class Todo(models.Model):
     is_completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    start_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="تاریخ شروع"
+    )
+
+    end_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="تاریخ پایان"
+    )
+
+    deadline = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="ددلاین"
+    )
+
     def __str__(self):
         return self.title
