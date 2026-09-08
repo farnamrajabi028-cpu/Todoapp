@@ -1,0 +1,232 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 40px 24px;
+    font-family: "Vazirmatn", Tahoma, Arial, sans-serif;
+    color: #302b39;
+    background: linear-gradient(135deg, #faf7ff, #f7fbff);
+}
+
+.page-header {
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.page-header h1 {
+    margin: 0 0 10px;
+    color: black;
+    font-size: 36px;
+}
+
+
+.page-header p {
+    margin: 0;
+    color: #77717f;
+}
+
+.todo-layout {
+    display: grid;
+    direction: rtl;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    width: min(1400px, 100%);
+    margin: 0 auto;
+    align-items: start;
+}
+
+.column {
+    min-height: 480px;
+    padding: 24px;
+    border-radius: 20px;
+    background: #ffffff;
+}
+
+/* راست: افزودن تسک */
+
+.add-column {
+    border: 1px solid #69bd96;
+    box-shadow: 0 10px 26px rgba(9, 243, 25, 0.314);
+}
+
+.add-column h2 {
+    color: #388a65;
+}
+
+/* وسط: تسک‌های انجام‌نشده */
+
+.pending-column {
+    border: 1px solid #e67c7c;
+    box-shadow: 0 10px 26px rgba(230, 124, 124, 0.314);
+}
+
+.pending-column h2 {
+    color: #b94444;
+}
+
+/* چپ: تسک‌های انجام‌شده */
+
+.completed-column {
+    border: 1px solid #e1bf46;
+    box-shadow: 0 10px 26px rgba(105, 189, 150, 0.314);
+}
+
+.completed-column h2 {
+    color: #9a7600;
+}
+
+.column h2 {
+    margin: 0 0 24px;
+    font-size: 22px;
+}
+
+.todo-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.todo-form label {
+    color: #51495e;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.todo-form input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #ded8e6;
+    border-radius: 11px;
+    outline: none;
+    background: #ffffff;
+    color: #332f3b;
+    font: inherit;
+    transition: 0.2s;
+}
+
+.todo-form input:focus {
+    border-color: #69bd96;
+    box-shadow: 0 0 0 4px rgba(211, 173, 40, 0.12);
+}
+
+.todo-form > button {
+    margin-top: 5px;
+    padding: 13px 18px;
+    border: 0;
+    border-radius: 11px;
+    background: #69bd96;
+    color: #ffffff;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+
+.todo-form > button:hover {
+    background: #388a65;
+}
+
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.task-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid #ece8f0;
+    border-radius: 13px;
+    background: #ffffff;
+}
+
+.task-card h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.pending-card {
+    border-right: 4px solid #e67c7c;
+}
+
+.completed-card {
+    border-right: 4px solid #69bd96;
+}
+
+.completed-card h3 {
+    color: #777;
+    text-decoration: line-through;
+}
+
+.task-card button {
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 8px;
+    color: #ffffff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.complete-button {
+    background: #d95c5c;
+}
+
+.complete-button:hover {
+    background: #bd4444;
+}
+
+.undo-button {
+    background: #4fa87d;
+}
+
+.undo-button:hover {
+    background: #388c65;
+}
+
+.empty-message {
+    padding: 22px 12px;
+    border: 1px dashed #d8d1df;
+    border-radius: 13px;
+    color: #88818f;
+    text-align: center;
+}
+
+@media (max-width: 950px) {
+    .todo-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .column {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 25px 14px;
+    }
+
+    .page-header h1 {
+        font-size: 28px;
+    }
+
+    .column {
+        padding: 18px;
+    }
+
+    .task-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

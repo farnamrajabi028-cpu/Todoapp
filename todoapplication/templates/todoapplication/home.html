@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>مدیریت تسک‌ها</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'todoapplication/style.css' %}"
+    >
+</head>
+
+<body>
+    <header class="page-header">
+        <h1>مدیریت تسک‌ها</h1>
+        <p>کارهای روزانه‌ات را ساده و منظم مدیریت کن</p>
+    </header>
+
+    <main class="todo-layout">
+
+        <!-- راست: افزودن تسک -->
+        <section class="column add-column">
+            <h2>افزودن تسک</h2>
+
+            <form method="POST" class="todo-form">
+                {% csrf_token %}
+
+                <label for="title">عنوان تسک</label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="مثلاً مطالعه کتاب"
+                    required
+                >
+
+                <button type="submit">افزودن تسک</button>
+            </form>
+        </section>
+
+        <!-- وسط: تسک‌های انجام‌نشده -->
+        <section class="column pending-column">
+            <h2>تسک‌های انجام‌نشده</h2>
+
+            <div class="task-list">
+                {% for todo in pending_todos %}
+                    <article class="task-card pending-card">
+                        <h3>{{ todo.title }}</h3>
+
+                        <form
+                            method="POST"
+                            action="{% url 'toggle_todo' todo.id %}"
+                        >
+                            {% csrf_token %}
+
+                            <button type="submit" class="complete-button">
+                                انجام شد
+                            </button>
+                        </form>
+                    </article>
+                {% empty %}
+                    <p class="empty-message">
+                        تسک انجام‌نشده‌ای وجود ندارد.
+                    </p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- چپ: تسک‌های انجام‌شده -->
+        <section class="column completed-column">
+            <h2>تسک‌های انجام‌شده</h2>
+
+            <div class="task-list">
+                {% for todo in completed_todos %}
+                    <article class="task-card completed-card">
+                        <h3>{{ todo.title }}</h3>
+
+                        <form
+                            method="POST"
+                            action="{% url 'toggle_todo' todo.id %}"
+                        >
+                            {% csrf_token %}
+
+                            <button type="submit" class="undo-button">
+                                بازگردانی
+                            </button>
+                        </form>
+                    </article>
+                {% empty %}
+                    <p class="empty-message">
+                        هنوز هیچ تسکی انجام نشده است.
+                    </p>
+                {% endfor %}
+            </div>
+        </section>
+
+    </main>
+</body>
+</html>
