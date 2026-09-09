@@ -192,7 +192,7 @@ textarea {
 }
 
 .completed-card {
-    border-right: 4px solid #69bd96;
+    border-right: 4px solid #e1bf46;
 }
 
 .completed-card h3 {
@@ -230,11 +230,11 @@ textarea {
 }
 
 .undo-button {
-    background: #4fa87d;
+    background: #e1bf46;
 }
 
 .undo-button:hover {
-    background: #388c65;
+    background: #9a7600;
 }
 
 .task-dates {
