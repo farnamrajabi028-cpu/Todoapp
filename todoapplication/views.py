@@ -1,8 +1,10 @@
 import jdatetime
 
 from django.shortcuts import get_object_or_404, redirect, render
-
 from .models import Todo
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_POST
+
 
 
 def parse_jalali_date(value):
@@ -103,3 +105,13 @@ def toggle_todo(request, todo_id):
         todo.save(update_fields=["is_completed"])
 
     return redirect("home")
+
+
+@require_POST
+def delete_todo(request, todo_id):
+    todo = get_object_or_404(Todo, id=todo_id)
+    todo.delete()
+
+    return redirect("home")
+
+

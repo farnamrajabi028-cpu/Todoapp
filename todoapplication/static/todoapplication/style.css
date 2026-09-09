@@ -39,12 +39,10 @@ textarea {
     display: grid;
     direction: rtl;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
     gap: 24px;
     width: min(1400px, 100%);
     margin: 0 auto;
-
-    /* هر سه ستون هم‌ارتفاع می‌شوند */
-    align-items: stretch;
 }
 
 .column {
@@ -93,6 +91,8 @@ textarea {
     font-size: 22px;
 }
 
+/* فرم افزودن تسک */
+
 .todo-form {
     display: flex;
     flex-direction: column;
@@ -115,7 +115,9 @@ textarea {
     background: #ffffff;
     color: #332f3b;
     font: inherit;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
 }
 
 .todo-form textarea {
@@ -140,7 +142,6 @@ textarea {
     display: inline-block;
 }
 
-
 .todo-form > button {
     margin-top: 5px;
     padding: 13px 18px;
@@ -157,6 +158,8 @@ textarea {
 .todo-form > button:hover {
     background: #388a65;
 }
+
+/* فهرست تسک‌ها */
 
 .task-list {
     display: flex;
@@ -212,6 +215,15 @@ textarea {
     text-decoration: line-through;
 }
 
+/* دکمه‌های هر تسک */
+
+.task-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 7px;
+}
+
 .task-action {
     flex-shrink: 0;
     margin: 0;
@@ -225,7 +237,14 @@ textarea {
     font: inherit;
     font-size: 13px;
     font-weight: 700;
+    white-space: nowrap;
     cursor: pointer;
+    transition:
+        color 0.2s,
+        background 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s,
+        transform 0.2s;
 }
 
 .complete-button {
@@ -243,6 +262,43 @@ textarea {
 .undo-button:hover {
     background: #9a7600;
 }
+
+/* دکمه حذف مشترک */
+
+.delete-button {
+    min-width: 48px;
+    background: #ffffff;
+}
+
+/* حذف در ستون تسک‌های انجام‌نشده */
+
+.pending-delete-button {
+    border: 2px solid #d91e3d !important;
+    color: #d91e3d !important;
+}
+
+.pending-delete-button:hover {
+    color: #ffffff !important;
+    background: #d91e3d;
+    box-shadow: 0 5px 12px rgba(217, 30, 61, 0.24);
+    transform: translateY(-1px);
+}
+
+/* حذف در ستون تسک‌های انجام‌شده */
+
+.completed-delete-button {
+    border: 2px solid #ffcf2e !important;
+    color: #b58a00 !important;
+}
+
+.completed-delete-button:hover {
+    color: #ffffff !important;
+    background: #e1b51f;
+    box-shadow: 0 5px 12px rgba(225, 181, 31, 0.25);
+    transform: translateY(-1px);
+}
+
+/* تاریخ‌ها */
 
 .task-dates {
     display: flex;
@@ -281,6 +337,8 @@ textarea {
     text-align: center;
 }
 
+/* نمایش تبلت */
+
 @media (max-width: 950px) {
     .todo-layout {
         grid-template-columns: 1fr;
@@ -291,6 +349,8 @@ textarea {
         height: auto;
     }
 }
+
+/* نمایش موبایل */
 
 @media (max-width: 600px) {
     body {
@@ -310,7 +370,14 @@ textarea {
         flex-direction: column;
     }
 
-    .task-action,
+    .task-actions {
+        width: 100%;
+    }
+
+    .task-action {
+        flex: 1;
+    }
+
     .task-card button {
         width: 100%;
     }
