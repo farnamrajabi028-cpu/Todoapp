@@ -134,6 +134,13 @@ textarea {
     text-align: right;
 }
 
+.date-display {
+    direction: ltr;
+    unicode-bidi: isolate;
+    display: inline-block;
+}
+
+
 .todo-form > button {
     margin-top: 5px;
     padding: 13px 18px;
