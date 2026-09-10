@@ -1,3 +1,4 @@
+import re
 import jdatetime
 
 from django.contrib import messages
@@ -77,6 +78,20 @@ def register_view(request):
 
         if password != password_confirm:
             messages.error(request, "رمز عبور با تکرار آن مطابقت ندارد.")
+            return render(request, "todoapplication/register.html")
+
+        # اعتبارسنجی قدرت رمز عبور
+        if len(password) < 8:
+            messages.error(request, "رمز عبور باید حداقل ۸ کاراکتر باشد.")
+            return render(request, "todoapplication/register.html")
+        if not re.search(r"[A-Z]", password) or not re.search(r"[a-z]", password):
+            messages.error(request, "رمز عبور باید شامل حروف بزرگ و کوچک انگلیسی باشد.")
+            return render(request, "todoapplication/register.html")
+        if not re.search(r"[0-9]", password):
+            messages.error(request, "رمز عبور باید حداقل شامل یک عدد باشد.")
+            return render(request, "todoapplication/register.html")
+        if not re.search(r"[!@#$%^&*?,._-]", password):
+            messages.error(request, "رمز عبور باید حداقل شامل یک نماد خاص (!@#$%^&*?...) باشد.")
             return render(request, "todoapplication/register.html")
 
         if User.objects.filter(username=username).exists():

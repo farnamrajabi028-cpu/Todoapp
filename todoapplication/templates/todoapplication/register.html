@@ -7,6 +7,44 @@
     <title>ثبت نام - مدیریت تسک‌ها</title>
     <link rel="stylesheet" href="{% static 'todoapplication/auth_style.css' %}">
     <style>
+        .password-rules {
+            margin-top: 8px;
+            padding: 10px 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            font-size: 12px;
+        }
+        .rule-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            margin: 3px 0;
+            transition: color 0.2s ease;
+        }
+        .rule-item.valid {
+            color: #10b981;
+            font-weight: 600;
+        }
+        .rule-item .icon {
+            font-size: 11px;
+            display: inline-block;
+            width: 14px;
+        }
+        .strength-bar {
+            height: 4px;
+            width: 100%;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
         .btn-submit {
             width: 100%;
             padding: 12px;
@@ -35,7 +73,7 @@
     <div class="auth-container">
         <div class="auth-card">
             <h2>ساخت حساب جدید</h2>
-            <p class="subtitle">برای مدیریت تسک ها خود یک حساب کاربری بسازید.</p>
+            <p class="subtitle">برای مدیریت تسک‌های خود یک حساب کاربری بسازید.</p>
 
             {% if messages %}
                 {% for message in messages %}
@@ -43,10 +81,10 @@
                 {% endfor %}
             {% endif %}
 
-            <form method="POST" action="{% url 'register' %}">
+            <form method="POST" action="{% url 'register' %}" id="register-form">
                 {% csrf_token %}
                 <div class="form-group">
-                    <label for="username">نام کاربری</label>
+                    <label for="username-input">نام کاربری</label>
                     <input type="text" id="username-input" name="username" required autocomplete="username" autofocus>
                     <small id="username-feedback" style="display: block; margin-top: 6px; font-size: 13px; font-weight: 500;"></small>
                 </div>
@@ -59,11 +97,23 @@
                 <div class="form-group">
                     <label for="password">رمز عبور</label>
                     <input type="password" id="password" name="password" required autocomplete="new-password">
+                    
+                    <div class="strength-bar">
+                        <div class="strength-fill" id="strength-fill"></div>
+                    </div>
+
+                    <div class="password-rules">
+                        <div class="rule-item" id="rule-length"><span class="icon">○</span> حداقل ۸ کاراکتر</div>
+                        <div class="rule-item" id="rule-case"><span class="icon">○</span> حروف بزرگ و کوچک (A-z)</div>
+                        <div class="rule-item" id="rule-number"><span class="icon">○</span> حداقل یک عدد (0-9)</div>
+                        <div class="rule-item" id="rule-special"><span class="icon">○</span> کاراکتر خاص (!@#$%^&*?...)</div>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="password_confirm">تکرار رمز عبور</label>
                     <input type="password" id="password_confirm" name="password_confirm" required autocomplete="new-password">
+                    <small id="match-feedback" style="display: block; margin-top: 6px; font-size: 12px; font-weight: 500;"></small>
                 </div>
 
                 <button type="submit" id="submit-btn" class="btn btn-primary btn-submit">ثبت نام</button>
@@ -79,39 +129,104 @@
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         const usernameInput = document.getElementById("username-input");
-        const feedback = document.getElementById("username-feedback");
+        const usernameFeedback = document.getElementById("username-feedback");
+        const passwordInput = document.getElementById("password");
+        const confirmInput = document.getElementById("password_confirm");
+        const matchFeedback = document.getElementById("match-feedback");
         const submitBtn = document.getElementById("submit-btn");
+        const strengthFill = document.getElementById("strength-fill");
 
-        if (usernameInput && feedback) {
-            let debounceTimer;
-            usernameInput.addEventListener("input", function() {
-                clearTimeout(debounceTimer);
-                const val = this.value.trim();
+        const ruleLength = document.getElementById("rule-length");
+        const ruleCase = document.getElementById("rule-case");
+        const ruleNumber = document.getElementById("rule-number");
+        const ruleSpecial = document.getElementById("rule-special");
 
-                if (val.length === 0) {
-                    feedback.textContent = "";
-                    if (submitBtn) submitBtn.disabled = false;
-                    return;
-                }
+        let isUsernameValid = false;
+        let isPasswordValid = false;
+        let isMatchValid = false;
 
-                debounceTimer = setTimeout(() => {
-                    fetch(`/check-username/?username=${encodeURIComponent(val)}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.exists) {
-                                feedback.textContent = "این نام کاربری قبلاً استفاده شده است.";
-                                feedback.style.color = "#ef4444";
-                                if (submitBtn) submitBtn.disabled = true;
-                            } else {
-                                feedback.textContent = "این نام کاربری آزاد است.";
-                                feedback.style.color = "#10b981";
-                                if (submitBtn) submitBtn.disabled = false;
-                            }
-                        })
-                        .catch(err => console.error("Error:", err));
-                }, 300);
-            });
+        function updateRule(elem, isValid) {
+            const icon = elem.querySelector(".icon");
+            if (isValid) {
+                elem.classList.add("valid");
+                icon.textContent = "✓";
+            } else {
+                elem.classList.remove("valid");
+                icon.textContent = "○";
+            }
         }
+
+        function validatePassword() {
+            const val = passwordInput.value;
+            const hasLength = val.length >= 8;
+            const hasCase = /[a-z]/.test(val) && /[A-Z]/.test(val);
+            const hasNumber = /[0-9]/.test(val);
+            const hasSpecial = /[!@#$%^&*?,._-]/.test(val);
+
+            updateRule(ruleLength, hasLength);
+            updateRule(ruleCase, hasCase);
+            updateRule(ruleNumber, hasNumber);
+            updateRule(ruleSpecial, hasSpecial);
+
+            let score = [hasLength, hasCase, hasNumber, hasSpecial].filter(Boolean).length;
+            const colors = ["#ef4444", "#f59e0b", "#3b82f6", "#10b981"];
+            strengthFill.style.width = (score * 25) + "%";
+            strengthFill.style.backgroundColor = colors[score - 1] || "#e2e8f0";
+
+            isPasswordValid = (score === 4);
+            validateMatch();
+        }
+
+        function validateMatch() {
+            const p1 = passwordInput.value;
+            const p2 = confirmInput.value;
+
+            if (p2.length === 0) {
+                matchFeedback.textContent = "";
+                isMatchValid = false;
+            } else if (p1 === p2) {
+                matchFeedback.textContent = "رمزها مطابقت دارند ✓";
+                matchFeedback.style.color = "#10b981";
+                isMatchValid = true;
+            } else {
+                matchFeedback.textContent = "رمز عبور با تکرار آن یکسان نیست";
+                matchFeedback.style.color = "#ef4444";
+                isMatchValid = false;
+            }
+        }
+
+        passwordInput.addEventListener("input", validatePassword);
+        confirmInput.addEventListener("input", validateMatch);
+
+        // Username AJAX check
+        let debounceTimer;
+        usernameInput.addEventListener("input", function() {
+            clearTimeout(debounceTimer);
+            const val = this.value.trim();
+
+            if (val.length === 0) {
+                usernameFeedback.textContent = "";
+                isUsernameValid = false;
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                fetch(`/check-username/?username=${encodeURIComponent(val)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.exists) {
+                            usernameFeedback.textContent = "این نام کاربری قبلاً استفاده شده است.";
+                            usernameFeedback.style.color = "#ef4444";
+                            isUsernameValid = false;
+                        } else {
+                            usernameFeedback.textContent = "این نام کاربری آزاد است.";
+                            usernameFeedback.style.color = "#10b981";
+                            isUsernameValid = true;
+                        }
+                    })
+                    .catch(err => console.error("Error:", err));
+            }, 300);
+        });
     });
     </script>
 </body>
