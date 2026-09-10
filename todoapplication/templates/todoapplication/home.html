@@ -1,4 +1,5 @@
 {% load static %}
+{% load jalali_tags %}
 
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -131,7 +132,7 @@
                                         <p>
                                             <strong>شروع:</strong>
                                             <span class="date-display" dir="ltr">
-                                                {{ todo.jalali_start_date }}
+                                                {{ todo.start_date|to_jalali }}
                                             </span>
                                         </p>
                                     {% endif %}
@@ -140,7 +141,7 @@
                                         <p>
                                             <strong>پایان:</strong>
                                             <span class="date-display" dir="ltr">
-                                                {{ todo.jalali_end_date }}
+                                                {{ todo.end_date|to_jalali }}
                                             </span>
                                         </p>
                                     {% endif %}
@@ -149,7 +150,7 @@
                                         <p class="deadline-date">
                                             <strong>ددلاین:</strong>
                                             <span class="date-display" dir="ltr">
-                                                {{ todo.jalali_deadline }}
+                                                {{ todo.deadline|to_jalali }}
                                             </span>
                                         </p>
                                     {% endif %}
@@ -231,7 +232,7 @@
                                         <p>
                                             <strong>شروع:</strong>
                                             <span class="date-display" dir="ltr">
-                                                {{ todo.jalali_start_date }}
+                                                {{ todo.start_date|to_jalali }}
                                             </span>
                                         </p>
                                     {% endif %}
@@ -240,7 +241,7 @@
                                         <p>
                                             <strong>پایان:</strong>
                                             <span class="date-display" dir="ltr">
-                                                {{ todo.jalali_end_date }}
+                                                {{ todo.end_date|to_jalali }}
                                             </span>
                                         </p>
                                     {% endif %}
@@ -249,7 +250,7 @@
                                         <p class="deadline-date">
                                             <strong>ددلاین:</strong>
                                             <span class="date-display" dir="ltr">
-                                                {{ todo.jalali_deadline }}
+                                                {{ todo.deadline|to_jalali }}
                                             </span>
                                         </p>
                                     {% endif %}
