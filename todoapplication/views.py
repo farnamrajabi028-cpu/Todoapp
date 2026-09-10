@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Todo
@@ -64,62 +65,31 @@ def login_view(request):
 def register_view(request):
     if request.user.is_authenticated:
         return redirect("home")
-
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         email = request.POST.get("email", "").strip()
-        password1 = request.POST.get("password1", "")
-        password2 = request.POST.get("password2", "")
+        password = request.POST.get("password", "")
+        password_confirm = request.POST.get("password_confirm") or request.POST.get("confirm_password") or ""
 
-        if not username or not email or not password1 or not password2:
-            messages.error(
-                request,
-                "لطفاً همه فیلدها را تکمیل کنید.",
-            )
+        if not username or not password:
+            messages.error(request, "لطفاً تمامی فیلدهای الزامی را تکمیل کنید.")
+            return render(request, "todoapplication/register.html")
 
-        elif User.objects.filter(username=username).exists():
-            messages.error(
-                request,
-                "این نام کاربری قبلاً استفاده شده است.",
-            )
+        if password != password_confirm:
+            messages.error(request, "رمز عبور با تکرار آن مطابقت ندارد.")
+            return render(request, "todoapplication/register.html")
 
-        elif User.objects.filter(email=email).exists():
-            messages.error(
-                request,
-                "این ایمیل قبلاً ثبت شده است.",
-            )
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "این نام کاربری قبلاً استفاده شده است.")
+            return render(request, "todoapplication/register.html")
 
-        elif password1 != password2:
-            messages.error(
-                request,
-                "رمز عبور و تکرار آن یکسان نیستند.",
-            )
-
-        elif len(password1) < 8:
-            messages.error(
-                request,
-                "رمز عبور باید حداقل ۸ کاراکتر داشته باشد.",
-            )
-
-        else:
-            User.objects.create_user(
-                username=username,
-                email=email,
-                password=password1,
-            )
-
-            messages.success(
-                request,
-                "حساب کاربری با موفقیت ساخته شد؛ اکنون وارد شوید.",
-            )
-
-            return redirect("login")
+        user = User.objects.create_user(username=username, email=email, password=password)
+        login(request, user)
+        messages.success(request, f"خوش آمدید {username}! حساب شما با موفقیت ساخته شد.")
+        return redirect("home")
 
     return render(request, "todoapplication/register.html")
 
-
-
-@login_required
 def home(request):
     if request.method == "POST":
         title = request.POST.get("title", "").strip()
@@ -230,3 +200,11 @@ def delete_todo(request, todo_id):
         messages.success(request, "تسک با موفقیت حذف شد.")
 
     return redirect("home")
+
+
+def check_username(request):
+    username = request.GET.get("username", "").strip()
+    if not username:
+        return JsonResponse({"exists": False})
+    exists = User.objects.filter(username__iexact=username).exists()
+    return JsonResponse({"exists": exists})

@@ -6,6 +6,7 @@ from todoapplication import views
 
 
 urlpatterns = [
+    path('check-username/', views.check_username, name='check_username'),
     # پنل مدیریت جنگو
     path(
         "admin/",

@@ -19,9 +19,17 @@
 
 <body>
 
-    <header class="page-header">
-        <h1>مدیریت تسک‌ها</h1>
-        <p>تسک‌های خود را به‌سادگی مدیریت کنید</p>
+    <header class="page-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; margin-bottom: 20px;">
+        <div>
+            <h1 style="margin: 0 0 5px 0;">مدیریت تسک‌ها</h1>
+            <p style="margin: 0; color: #64748b;">تسک‌های خود را به‌سادگی مدیریت کنید</p>
+        </div>
+        {% if user.is_authenticated %}
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 14px; color: #334155;">کاربر: <strong>{{ user.username }}</strong></span>
+            <a href="{% url 'logout' %}" style="display: inline-block; padding: 8px 16px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500;">خروج از حساب</a>
+        </div>
+        {% endif %}
     </header>
 
     <main class="todo-layout">
