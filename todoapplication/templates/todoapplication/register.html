@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>ثبت‌نام | مدیریت تسک ها</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'todoapplication/auth_style.css' %}"
+    >
+</head>
+
+<body>
+    <main class="auth-container">
+        <section class="auth-card">
+
+            <header class="auth-header">
+                <h1>ساخت حساب جدید</h1>
+                <p>برای مدیریت تسک ها خود یک حساب کاربری بسازید.</p>
+            </header>
+
+            {% if messages %}
+                <div class="messages" aria-live="polite">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if form.non_field_errors %}
+                <div class="message error">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'register' %}">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="register-username">
+                        نام کاربری
+                    </label>
+
+                    <input
+                        id="register-username"
+                        name="username"
+                        type="text"
+                        value="{{ form.username.value|default:'' }}"
+                        autocomplete="username"
+                        autofocus
+                        required
+                    >
+
+                    {% if form.username.errors %}
+                        <div class="field-errors">
+                            {% for error in form.username.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="register-email">
+                        ایمیل
+                    </label>
+
+                    <input
+                        id="register-email"
+                        name="email"
+                        type="email"
+                        value="{{ form.email.value|default:'' }}"
+                        autocomplete="email"
+                        required
+                    >
+
+                    {% if form.email.errors %}
+                        <div class="field-errors">
+                            {% for error in form.email.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="register-password1">
+                        رمز عبور
+                    </label>
+
+                    <input
+                        id="register-password1"
+                        name="password1"
+                        type="password"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    {% if form.password1.errors %}
+                        <div class="field-errors">
+                            {% for error in form.password1.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="register-password2">
+                        تکرار رمز عبور
+                    </label>
+
+                    <input
+                        id="register-password2"
+                        name="password2"
+                        type="password"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    {% if form.password2.errors %}
+                        <div class="field-errors">
+                            {% for error in form.password2.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button class="auth-button register-button" type="submit">
+                    ثبت‌نام
+                </button>
+
+                <div class="auth-links single-link">
+                    <a
+                        class="auth-link"
+                        href="{% url 'login' %}"
+                    >
+                        قبلاً ثبت‌نام کرده‌اید؟ وارد شوید
+                    </a>
+                </div>
+            </form>
+
+        </section>
+    </main>
+</body>
+</html>

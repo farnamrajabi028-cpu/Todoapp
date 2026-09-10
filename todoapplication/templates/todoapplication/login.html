@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>ورود | مدیریت تسک ها</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'todoapplication/auth_style.css' %}"
+    >
+</head>
+
+<body>
+    <main class="auth-container">
+        <section class="auth-card">
+
+            <header class="auth-header">
+                <h1>مدیریت تسک ها</h1>
+                <p>برای مشاهده و مدیریت کارهای خود وارد شوید.</p>
+            </header>
+
+            {% if messages %}
+                <div class="messages" aria-live="polite">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if form.non_field_errors %}
+                <div class="message error">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+
+                {% if next %}
+                    <input
+                        type="hidden"
+                        name="next"
+                        value="{{ next }}"
+                    >
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="login-username">
+                        نام کاربری
+                    </label>
+
+                    <input
+                        id="login-username"
+                        name="username"
+                        type="text"
+                        value="{{ form.username.value|default:'' }}"
+                        autocomplete="username"
+                        autofocus
+                        required
+                    >
+
+                    {% if form.username.errors %}
+                        <div class="field-errors">
+                            {% for error in form.username.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="login-password">
+                        رمز عبور
+                    </label>
+
+                    <input
+                        id="login-password"
+                        name="password"
+                        type="password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                    {% if form.password.errors %}
+                        <div class="field-errors">
+                            {% for error in form.password.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button class="auth-button" type="submit">
+                    ورود
+                </button>
+
+                <div class="auth-links">
+                    <a
+                        class="auth-link"
+                        href="{% url 'password_reset' %}"
+                    >
+                        رمز عبور را فراموش کرده‌اید؟
+                    </a>
+
+                    <span class="links-divider" aria-hidden="true"></span>
+
+                    <a
+                        class="auth-link register-link"
+                        href="{% url 'register' %}"
+                    >
+                        حساب کاربری ندارید؟ ثبت‌نام کنید
+                    </a>
+                </div>
+            </form>
+
+        </section>
+    </main>
+</body>
+</html>

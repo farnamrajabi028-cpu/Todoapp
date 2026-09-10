@@ -1,117 +1,232 @@
 import jdatetime
 
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
-from .models import Todo
-from django.shortcuts import get_object_or_404, redirect
-from django.views.decorators.http import require_POST
 
+from .models import Todo
 
 
 def parse_jalali_date(value):
-    """
-    تبدیل تاریخ شمسی واردشده مانند 1405/06/18
-    به تاریخ میلادی برای ذخیره در دیتابیس.
-    """
+    value = value.strip()
+
     if not value:
         return None
 
     try:
-        year, month, day = map(int, value.strip().split("/"))
-        jalali_date = jdatetime.date(year, month, day)
-        return jalali_date.togregorian()
-
+        year, month, day = map(int, value.split("/"))
+        return jdatetime.date(
+            year,
+            month,
+            day,
+        ).togregorian()
     except (ValueError, TypeError):
         return None
 
 
-def format_jalali_date(value):
-    """
-    تبدیل تاریخ میلادی دیتابیس به تاریخ شمسی برای نمایش.
-    """
-    if not value:
-        return ""
-
-    jalali_date = jdatetime.date.fromgregorian(date=value)
-    return jalali_date.strftime("%Y/%m/%d")
 
 
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("home")
+
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+
+        user = authenticate(
+            request,
+            username=username,
+            password=password,
+        )
+
+        if user is not None:
+            login(request, user)
+
+            next_url = request.POST.get("next")
+            if next_url:
+                return redirect(next_url)
+
+            return redirect("home")
+
+        messages.error(
+            request,
+            "نام کاربری یا رمز عبور صحیح نیست.",
+        )
+
+    return render(request, "todoapplication/login.html")
+
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect("home")
+
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        password1 = request.POST.get("password1", "")
+        password2 = request.POST.get("password2", "")
+
+        if not username or not email or not password1 or not password2:
+            messages.error(
+                request,
+                "لطفاً همه فیلدها را تکمیل کنید.",
+            )
+
+        elif User.objects.filter(username=username).exists():
+            messages.error(
+                request,
+                "این نام کاربری قبلاً استفاده شده است.",
+            )
+
+        elif User.objects.filter(email=email).exists():
+            messages.error(
+                request,
+                "این ایمیل قبلاً ثبت شده است.",
+            )
+
+        elif password1 != password2:
+            messages.error(
+                request,
+                "رمز عبور و تکرار آن یکسان نیستند.",
+            )
+
+        elif len(password1) < 8:
+            messages.error(
+                request,
+                "رمز عبور باید حداقل ۸ کاراکتر داشته باشد.",
+            )
+
+        else:
+            User.objects.create_user(
+                username=username,
+                email=email,
+                password=password1,
+            )
+
+            messages.success(
+                request,
+                "حساب کاربری با موفقیت ساخته شد؛ اکنون وارد شوید.",
+            )
+
+            return redirect("login")
+
+    return render(request, "todoapplication/register.html")
+
+
+
+@login_required
 def home(request):
     if request.method == "POST":
         title = request.POST.get("title", "").strip()
         description = request.POST.get("description", "").strip()
 
-        start_date = parse_jalali_date(
-            request.POST.get("start_date")
+        start_date_text = request.POST.get("start_date", "").strip()
+        end_date_text = request.POST.get("end_date", "").strip()
+        deadline_text = request.POST.get("deadline", "").strip()
+
+        start_date = parse_jalali_date(start_date_text)
+        end_date = parse_jalali_date(end_date_text)
+        deadline = parse_jalali_date(deadline_text)
+
+        invalid_date = (
+            (start_date_text and start_date is None)
+            or (end_date_text and end_date is None)
+            or (deadline_text and deadline is None)
         )
 
-        end_date = parse_jalali_date(
-            request.POST.get("end_date")
-        )
-
-        deadline = parse_jalali_date(
-            request.POST.get("deadline")
-        )
-
-        if title:
+        if not title:
+            messages.error(
+                request,
+                "عنوان تسک نمی‌تواند خالی باشد.",
+            )
+        elif invalid_date:
+            messages.error(
+                request,
+                "یکی از تاریخ‌ها معتبر نیست. نمونه صحیح: 1405/06/18",
+            )
+        else:
             Todo.objects.create(
+                user=request.user,
                 title=title,
                 description=description,
                 start_date=start_date,
                 end_date=end_date,
                 deadline=deadline,
-                is_completed=False,
             )
 
-        return redirect("home")
+            messages.success(
+                request,
+                "تسک با موفقیت اضافه شد.",
+            )
+            return redirect("home")
 
     pending_todos = Todo.objects.filter(
-        is_completed=False
-    ).order_by("-created_at")
+        user=request.user,
+        is_completed=False,
+    )
 
     completed_todos = Todo.objects.filter(
-        is_completed=True
-    ).order_by("-created_at")
+        user=request.user,
+        is_completed=True,
+    )
 
-    all_todos = list(pending_todos) + list(completed_todos)
-
-    for todo in all_todos:
-        todo.jalali_start_date = format_jalali_date(
-            todo.start_date
-        )
-
-        todo.jalali_end_date = format_jalali_date(
-            todo.end_date
-        )
-
-        todo.jalali_deadline = format_jalali_date(
-            todo.deadline
-        )
+    context = {
+        "pending_todos": pending_todos,
+        "completed_todos": completed_todos,
+    }
 
     return render(
         request,
         "todoapplication/home.html",
-        {
-            "pending_todos": pending_todos,
-            "completed_todos": completed_todos,
-        },
+        context,
     )
 
 
+
+@login_required
+def logout_view(request):
+    logout(request)
+    messages.success(request, "با موفقیت از حساب کاربری خارج شدید.")
+    return redirect("login")
+
+
+
+
+@login_required
 def toggle_todo(request, todo_id):
-    todo = get_object_or_404(Todo, id=todo_id)
+    todo = get_object_or_404(
+        Todo,
+        id=todo_id,
+        user=request.user,
+    )
 
     if request.method == "POST":
         todo.is_completed = not todo.is_completed
         todo.save(update_fields=["is_completed"])
 
+        if todo.is_completed:
+            messages.success(request, "تسک به بخش انجام‌شده منتقل شد.")
+        else:
+            messages.success(request, "تسک به بخش در انتظار منتقل شد.")
+
     return redirect("home")
 
 
-@require_POST
+@login_required
 def delete_todo(request, todo_id):
-    todo = get_object_or_404(Todo, id=todo_id)
-    todo.delete()
+    todo = get_object_or_404(
+        Todo,
+        id=todo_id,
+        user=request.user,
+    )
+
+    if request.method == "POST":
+        todo.delete()
+        messages.success(request, "تسک با موفقیت حذف شد.")
 
     return redirect("home")
-
-
