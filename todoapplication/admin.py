@@ -40,3 +40,4 @@ class TodoAdmin(admin.ModelAdmin):
     autocomplete_fields = ("user",)
 
     list_per_page = 25
+
