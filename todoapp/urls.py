@@ -55,6 +55,13 @@ urlpatterns = [
         name="delete_todo",
     ),
 
+    path(
+    "todo/<int:todo_id>/calendar/",
+    views.add_to_google_calendar,
+    name="add_to_google_calendar",
+    ),
+
+
     # فرم درخواست بازیابی رمز عبور
     path(
         "password-reset/",

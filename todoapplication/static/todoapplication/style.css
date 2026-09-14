@@ -382,3 +382,39 @@ textarea {
         width: 100%;
     }
 }
+
+/* Google Calendar button */
+.calendar-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 2px solid green;
+    border-radius: 11px;
+    background-color: #ffffff;
+    color: green;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.calendar-button:hover {
+    background-color: green;
+    color: #ffffff;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.calendar-button:focus-visible {
+    outline: 3px solid green;
+    outline-offset: 2px;
+}
+
