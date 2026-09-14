@@ -11,6 +11,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .models import Todo
 
 
+from datetime import timedelta
+from urllib.parse import urlencode
+
+from django.utils import timezone
+
+
+
 def parse_jalali_date(value):
     value = value.strip()
 
@@ -105,6 +112,8 @@ def register_view(request):
 
     return render(request, "todoapplication/register.html")
 
+
+@login_required
 def home(request):
     if request.method == "POST":
         title = request.POST.get("title", "").strip()
@@ -170,6 +179,63 @@ def home(request):
         "todoapplication/home.html",
         context,
     )
+
+
+@login_required
+def add_to_google_calendar(request, todo_id):
+    todo = get_object_or_404(
+        Todo,
+        id=todo_id,
+        user=request.user,
+    )
+
+    # اولویت تاریخ‌ها:
+    # شروع: start_date سپس deadline سپس امروز
+    # پایان: end_date سپس deadline سپس تاریخ شروع
+    start_date = todo.start_date or todo.deadline or timezone.localdate()
+    end_date = todo.end_date or todo.deadline or start_date
+
+    if end_date < start_date:
+        messages.error(
+            request,
+            "لطفاً تاریخ معتبر وارد کنید. "
+            "تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.",
+            extra_tags="calendar-date-error",
+        )
+        return redirect("home")
+
+    # رویداد تمام‌روزه گوگل، تاریخ پایان را به‌صورت غیرشامل می‌پذیرد.
+    google_end_date = end_date + timedelta(days=1)
+
+    details = todo.description.strip()
+    if todo.deadline:
+        deadline_text = todo.deadline.strftime("%Y-%m-%d")
+        details = (
+            f"{details}\n\nDeadline: {deadline_text}"
+            if details
+            else f"Deadline: {deadline_text}"
+        )
+
+    params = {
+        "action": "TEMPLATE",
+        "text": todo.title,
+        "dates": (
+            f"{start_date.strftime('%Y%m%d')}/"
+            f"{google_end_date.strftime('%Y%m%d')}"
+        ),
+        "details": details,
+    }
+
+    google_calendar_url = (
+        "https://calendar.google.com/calendar/render?"
+        + urlencode(params)
+    )
+
+    return redirect(google_calendar_url)
+
+
+
+
 
 
 

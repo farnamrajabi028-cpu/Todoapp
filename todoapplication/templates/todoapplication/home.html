@@ -20,7 +20,19 @@
 
 <body>
 
-    <header class="page-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; margin-bottom: 20px;">
+    {% if messages %}
+        {% for message in messages %}
+            {% if "calendar-date-error" in message.tags %}
+                <div class="messages-container">
+                    <div class="alert alert-error">
+                        {{ message }}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+<header class="page-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; margin-bottom: 20px;">
         <div>
             <h1 style="margin: 0 0 5px 0;">مدیریت تسک‌ها</h1>
             <p style="margin: 0; color: #64748b;">تسک‌های خود را به‌سادگی مدیریت کنید</p>
@@ -175,6 +187,26 @@
                                     انجام شد
                                 </button>
                             </form>
+
+                            {% if todo.start_date and todo.end_date and todo.end_date < todo.start_date %}
+                                <a
+                                    href="{% url 'add_to_google_calendar' todo.id %}"
+                                    class="calendar-button"
+                                    title="تاریخ این تسک نامعتبر است"
+                                >
+                                    افزودن به تقویم
+                                </a>
+                            {% else %}
+                                <a
+                                    href="{% url 'add_to_google_calendar' todo.id %}"
+                                    class="calendar-button"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="افزودن به Google Calendar"
+                                >
+                                    افزودن به تقویم
+                                </a>
+                            {% endif %}
 
                             <form
                                 method="POST"
