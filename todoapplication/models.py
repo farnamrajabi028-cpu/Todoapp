@@ -57,3 +57,86 @@ class Todo(models.Model):
 
     def __str__(self):
         return self.title
+
+
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="profile",
+        verbose_name="کاربر",
+    )
+
+    phone_number = models.CharField(
+        max_length=11,
+        unique=True,
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name="شماره همراه",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="زمان ایجاد",
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="آخرین تغییر",
+    )
+
+    class Meta:
+        verbose_name = "پروفایل کاربر"
+        verbose_name_plural = "پروفایل کاربران"
+
+    def __str__(self):
+        return self.phone_number or self.user.get_username()
+
+
+class PhoneOTP(models.Model):
+    phone_number = models.CharField(
+        max_length=11,
+        db_index=True,
+        verbose_name="شماره همراه",
+    )
+
+    code_hash = models.CharField(
+        max_length=128,
+        verbose_name="هش کد تأیید",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="زمان ایجاد",
+    )
+
+    expires_at = models.DateTimeField(
+        verbose_name="زمان انقضا",
+    )
+
+    attempts = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="تعداد تلاش‌ها",
+    )
+
+    is_used = models.BooleanField(
+        default=False,
+        verbose_name="استفاده شده",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "کد ورود پیامکی"
+        verbose_name_plural = "کدهای ورود پیامکی"
+        indexes = [
+            models.Index(
+                fields=["phone_number", "is_used", "expires_at"],
+                name="otp_phone_status_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.phone_number} - {self.created_at:%Y-%m-%d %H:%M}"
