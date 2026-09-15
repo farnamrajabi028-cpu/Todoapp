@@ -3,231 +3,758 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ثبت نام - مدیریت تسک‌ها</title>
-    <link rel="stylesheet" href="{% static 'todoapplication/auth_style.css' %}">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>ثبت‌نام | مدیریت تسک‌ها</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'todoapplication/auth_style.css' %}"
+    >
+
     <style>
         .password-rules {
-            margin-top: 8px;
-            padding: 10px 12px;
-            background: #f8fafc;
-            border-radius: 8px;
+            margin-top: 10px;
+            padding: 12px;
+            background-color: #f8fafc;
             border: 1px solid #e2e8f0;
+            border-radius: 8px;
             font-size: 12px;
         }
+
         .rule-item {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
+            margin: 5px 0;
             color: #64748b;
-            margin: 3px 0;
             transition: color 0.2s ease;
         }
+
         .rule-item.valid {
             color: #10b981;
             font-weight: 600;
         }
+
         .rule-item .icon {
-            font-size: 11px;
             display: inline-block;
-            width: 14px;
+            width: 15px;
+            font-size: 12px;
         }
+
         .strength-bar {
-            height: 4px;
             width: 100%;
-            background: #e2e8f0;
-            border-radius: 2px;
-            margin-top: 6px;
+            height: 5px;
+            margin-top: 8px;
             overflow: hidden;
+            background-color: #e2e8f0;
+            border-radius: 3px;
         }
+
         .strength-fill {
+            width: 0;
             height: 100%;
-            width: 0%;
-            transition: width 0.3s ease, background-color 0.3s ease;
+            background-color: #e2e8f0;
+            transition:
+                width 0.3s ease,
+                background-color 0.3s ease;
         }
+
+        .username-feedback,
+    .password-feedback {
+        display: block;
+        min-height: 18px;
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        }
+
+
         .btn-submit {
             width: 100%;
+            margin-top: 16px;
             padding: 12px;
-            background-color: #6366f1;
             color: #ffffff;
-            border: none;
-            border-radius: 8px;
+            font-family: inherit;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: 15px;
-            font-family: inherit;
+            background-color: #6366f1;
+            border: none;
+            border-radius: 8px;
+            transition:
+                background-color 0.2s ease,
+                opacity 0.2s ease;
         }
+
         .btn-submit:hover:not(:disabled) {
             background-color: #4f46e5;
         }
+
         .btn-submit:disabled {
-            background-color: #94a3b8;
             cursor: not-allowed;
-            opacity: 0.7;
+            background-color: #94a3b8;
+            opacity: 0.75;
+        }
+
+        .server-message {
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .server-message.error {
+            color: #991b1b;
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+        }
+
+        .server-message.success {
+            color: #166534;
+            background-color: #dcfce7;
+            border: 1px solid #bbf7d0;
+        }
+
+        .server-message.warning {
+            color: #92400e;
+            background-color: #fef3c7;
+            border: 1px solid #fde68a;
+        }
+
+        .server-message.info {
+            color: #1e40af;
+            background-color: #dbeafe;
+            border: 1px solid #bfdbfe;
+        }
+
+        .auth-footer {
+            margin-top: 22px;
+            text-align: center;
+        }
+
+        .auth-footer a {
+            margin-right: 5px;
+            color: #6366f1;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
+
 <body>
-    <div class="auth-container">
-        <div class="auth-card">
-            <h2>ساخت حساب جدید</h2>
-            <p class="subtitle">برای مدیریت تسک‌های خود یک حساب کاربری بسازید.</p>
+    <main class="auth-container">
+        <section class="auth-card">
+            <header class="auth-header">
+                <h1>ساخت حساب جدید</h1>
+
+                <p>
+                    برای مدیریت تسک‌های خود یک حساب کاربری بسازید.
+                </p>
+            </header>
 
             {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                {% endfor %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div
+                            class="server-message
+                            {% if message.tags %}
+                                {{ message.tags }}
+                            {% else %}
+                                info
+                            {% endif %}"
+                        >
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
 
-            <form method="POST" action="{% url 'register' %}" id="register-form">
+            <form
+                method="post"
+                action="{% url 'register' %}"
+                id="register-form"
+                novalidate
+            >
                 {% csrf_token %}
+
                 <div class="form-group">
-                    <label for="username-input">نام کاربری</label>
-                    <input type="text" id="username-input" name="username" required autocomplete="username" autofocus>
-                    <small id="username-feedback" style="display: block; margin-top: 6px; font-size: 13px; font-weight: 500;"></small>
+                    <label for="username-input">
+                        نام کاربری
+                    </label>
+
+                    <input
+                        type="text"
+                        id="username-input"
+                        name="username"
+                        value="{{ entered_username|default:'' }}"
+                        maxlength="150"
+                        autocomplete="username"
+                        required
+                        autofocus
+                    >
+
+                    <small
+                        id="username-feedback"
+                        class="username-feedback"
+                    ></small>
                 </div>
 
                 <div class="form-group">
-                    <label for="email">ایمیل</label>
-                    <input type="email" id="email" name="email" required autocomplete="email">
+                    <label for="phone-number-input">
+                        شماره همراه
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="phone-number-input"
+                        name="phone_number"
+                        value="{{ entered_phone_number|default:'' }}"
+                        placeholder="09123456789"
+                        maxlength="11"
+                        inputmode="numeric"
+                        autocomplete="tel"
+                        dir="ltr"
+                        required
+                    >
+
+                    <small
+                        id="phone-feedback"
+                        class="password-feedback"
+                    ></small>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">رمز عبور</label>
-                    <input type="password" id="password" name="password" required autocomplete="new-password">
-                    
+                    <label for="password-input">
+                        رمز عبور
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password-input"
+                        name="password"
+                        autocomplete="new-password"
+                        required
+                    >
+
                     <div class="strength-bar">
-                        <div class="strength-fill" id="strength-fill"></div>
+                        <div
+                            class="strength-fill"
+                            id="strength-fill"
+                        ></div>
                     </div>
 
                     <div class="password-rules">
-                        <div class="rule-item" id="rule-length"><span class="icon">○</span> حداقل ۸ کاراکتر</div>
-                        <div class="rule-item" id="rule-case"><span class="icon">○</span> حروف بزرگ و کوچک (A-z)</div>
-                        <div class="rule-item" id="rule-number"><span class="icon">○</span> حداقل یک عدد (0-9)</div>
-                        <div class="rule-item" id="rule-special"><span class="icon">○</span> کاراکتر خاص (!@#$%^&*?...)</div>
+                        <div
+                            class="rule-item"
+                            id="rule-length"
+                        >
+                            <span class="icon">○</span>
+                            <span>حداقل ۸ کاراکتر</span>
+                        </div>
+
+                        <div
+                            class="rule-item"
+                            id="rule-case"
+                        >
+                            <span class="icon">○</span>
+                            <span>
+                                شامل حروف بزرگ و کوچک انگلیسی
+                            </span>
+                        </div>
+
+                        <div
+                            class="rule-item"
+                            id="rule-number"
+                        >
+                            <span class="icon">○</span>
+                            <span>حداقل شامل یک عدد</span>
+                        </div>
+
+                        <div
+                            class="rule-item"
+                            id="rule-special"
+                        >
+                            <span class="icon">○</span>
+                            <span>
+                                حداقل شامل یک کاراکتر خاص
+                            </span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="password_confirm">تکرار رمز عبور</label>
-                    <input type="password" id="password_confirm" name="password_confirm" required autocomplete="new-password">
-                    <small id="match-feedback" style="display: block; margin-top: 6px; font-size: 12px; font-weight: 500;"></small>
+                    <label for="password-confirm-input">
+                        تکرار رمز عبور
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password-confirm-input"
+                        name="password_confirm"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    <small
+                        id="password-match-feedback"
+                        class="password-feedback"
+                    ></small>
                 </div>
 
-                <button type="submit" id="submit-btn" class="btn btn-primary btn-submit">ثبت نام</button>
+                <button
+                    type="submit"
+                    id="submit-button"
+                    class="btn-submit"
+                >
+                    ثبت‌نام
+                </button>
             </form>
 
-            <div class="auth-footer" style="margin-top: 20px; text-align: center;">
-                <span>حساب کاربری دارید؟</span>
-                <a href="{% url 'login' %}" style="color: #6366f1; text-decoration: none; font-weight: 600; margin-right: 5px;">وارد شوید</a>
-            </div>
-        </div>
-    </div>
+            <footer class="auth-footer">
+                <span>قبلاً حساب ساخته‌اید؟</span>
+
+                <a href="{% url 'login' %}">
+                    وارد شوید
+                </a>
+            </footer>
+        </section>
+    </main>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const usernameInput = document.getElementById("username-input");
-        const usernameFeedback = document.getElementById("username-feedback");
-        const passwordInput = document.getElementById("password");
-        const confirmInput = document.getElementById("password_confirm");
-        const matchFeedback = document.getElementById("match-feedback");
-        const submitBtn = document.getElementById("submit-btn");
-        const strengthFill = document.getElementById("strength-fill");
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+                const form =
+                    document.getElementById("register-form");
 
-        const ruleLength = document.getElementById("rule-length");
-        const ruleCase = document.getElementById("rule-case");
-        const ruleNumber = document.getElementById("rule-number");
-        const ruleSpecial = document.getElementById("rule-special");
+                const usernameInput =
+                    document.getElementById("username-input");
 
-        let isUsernameValid = false;
-        let isPasswordValid = false;
-        let isMatchValid = false;
+                const usernameFeedback =
+                    document.getElementById(
+                        "username-feedback"
+                    );
 
-        function updateRule(elem, isValid) {
-            const icon = elem.querySelector(".icon");
-            if (isValid) {
-                elem.classList.add("valid");
-                icon.textContent = "✓";
-            } else {
-                elem.classList.remove("valid");
-                icon.textContent = "○";
-            }
-        }
+                const phoneInput =
+                    document.getElementById(
+                        "phone-number-input"
+                    );
 
-        function validatePassword() {
-            const val = passwordInput.value;
-            const hasLength = val.length >= 8;
-            const hasCase = /[a-z]/.test(val) && /[A-Z]/.test(val);
-            const hasNumber = /[0-9]/.test(val);
-            const hasSpecial = /[!@#$%^&*?,._-]/.test(val);
+                const phoneFeedback =
+                    document.getElementById(
+                        "phone-feedback"
+                    );
 
-            updateRule(ruleLength, hasLength);
-            updateRule(ruleCase, hasCase);
-            updateRule(ruleNumber, hasNumber);
-            updateRule(ruleSpecial, hasSpecial);
+                const passwordInput =
+                    document.getElementById(
+                        "password-input"
+                    );
 
-            let score = [hasLength, hasCase, hasNumber, hasSpecial].filter(Boolean).length;
-            const colors = ["#ef4444", "#f59e0b", "#3b82f6", "#10b981"];
-            strengthFill.style.width = (score * 25) + "%";
-            strengthFill.style.backgroundColor = colors[score - 1] || "#e2e8f0";
+                const confirmInput =
+                    document.getElementById(
+                        "password-confirm-input"
+                    );
 
-            isPasswordValid = (score === 4);
-            validateMatch();
-        }
+                const matchFeedback =
+                    document.getElementById(
+                        "password-match-feedback"
+                    );
 
-        function validateMatch() {
-            const p1 = passwordInput.value;
-            const p2 = confirmInput.value;
+                const strengthFill =
+                    document.getElementById(
+                        "strength-fill"
+                    );
 
-            if (p2.length === 0) {
-                matchFeedback.textContent = "";
-                isMatchValid = false;
-            } else if (p1 === p2) {
-                matchFeedback.textContent = "رمزها مطابقت دارند ✓";
-                matchFeedback.style.color = "#10b981";
-                isMatchValid = true;
-            } else {
-                matchFeedback.textContent = "رمز عبور با تکرار آن یکسان نیست";
-                matchFeedback.style.color = "#ef4444";
-                isMatchValid = false;
-            }
-        }
+                const submitButton =
+                    document.getElementById(
+                        "submit-button"
+                    );
 
-        passwordInput.addEventListener("input", validatePassword);
-        confirmInput.addEventListener("input", validateMatch);
+                const ruleLength =
+                    document.getElementById(
+                        "rule-length"
+                    );
 
-        // Username AJAX check
-        let debounceTimer;
-        usernameInput.addEventListener("input", function() {
-            clearTimeout(debounceTimer);
-            const val = this.value.trim();
+                const ruleCase =
+                    document.getElementById(
+                        "rule-case"
+                    );
 
-            if (val.length === 0) {
-                usernameFeedback.textContent = "";
-                isUsernameValid = false;
-                return;
-            }
+                const ruleNumber =
+                    document.getElementById(
+                        "rule-number"
+                    );
 
-            debounceTimer = setTimeout(() => {
-                fetch(`/check-username/?username=${encodeURIComponent(val)}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.exists) {
-                            usernameFeedback.textContent = "این نام کاربری قبلاً استفاده شده است.";
-                            usernameFeedback.style.color = "#ef4444";
-                            isUsernameValid = false;
-                        } else {
-                            usernameFeedback.textContent = "این نام کاربری آزاد است.";
-                            usernameFeedback.style.color = "#10b981";
-                            isUsernameValid = true;
+                const ruleSpecial =
+                    document.getElementById(
+                        "rule-special"
+                    );
+
+                let usernameIsAvailable = null;
+                let usernameTimer = null;
+
+                function convertToEnglishDigits(value) {
+                    const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+                    const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
+
+                    return value
+                        .replace(
+                            /[۰-۹]/g,
+                            function (character) {
+                                return persianDigits.indexOf(
+                                    character
+                                );
+                            }
+                        )
+                        .replace(
+                            /[٠-٩]/g,
+                            function (character) {
+                                return arabicDigits.indexOf(
+                                    character
+                                );
+                            }
+                        );
+                }
+
+                function updateRule(element, isValid) {
+                    const icon =
+                        element.querySelector(".icon");
+
+                    if (isValid) {
+                        element.classList.add("valid");
+                        icon.textContent = "✓";
+                    } else {
+                        element.classList.remove("valid");
+                        icon.textContent = "○";
+                    }
+                }
+
+                function getPasswordStatus() {
+                    const password = passwordInput.value;
+
+                    return {
+                        hasLength: password.length >= 8,
+                        hasCase:
+                            /[a-z]/.test(password)
+                            && /[A-Z]/.test(password),
+                        hasNumber: /[0-9]/.test(password),
+                        hasSpecial:
+                            /[!@#$%^&*?,._-]/.test(password),
+                    };
+                }
+
+                function passwordIsValid() {
+                    const status = getPasswordStatus();
+
+                    return (
+                        status.hasLength
+                        && status.hasCase
+                        && status.hasNumber
+                        && status.hasSpecial
+                    );
+                }
+
+                function validatePassword() {
+                    const status = getPasswordStatus();
+
+                    updateRule(
+                        ruleLength,
+                        status.hasLength
+                    );
+
+                    updateRule(
+                        ruleCase,
+                        status.hasCase
+                    );
+
+                    updateRule(
+                        ruleNumber,
+                        status.hasNumber
+                    );
+
+                    updateRule(
+                        ruleSpecial,
+                        status.hasSpecial
+                    );
+
+                    const score = [
+                        status.hasLength,
+                        status.hasCase,
+                        status.hasNumber,
+                        status.hasSpecial,
+                    ].filter(Boolean).length;
+
+                    const colors = {
+                        0: "#e2e8f0",
+                        1: "#ef4444",
+                        2: "#f59e0b",
+                        3: "#3b82f6",
+                        4: "#10b981",
+                    };
+
+                    strengthFill.style.width =
+                        (score * 25) + "%";
+
+                    strengthFill.style.backgroundColor =
+                        colors[score];
+
+                    validatePasswordMatch();
+                }
+
+                function validatePasswordMatch() {
+                    const password = passwordInput.value;
+                    const confirmation = confirmInput.value;
+
+                    if (!confirmation) {
+                        matchFeedback.textContent = "";
+                        return false;
+                    }
+
+                    if (password === confirmation) {
+                        matchFeedback.textContent =
+                            "رمزهای عبور مطابقت دارند ✓";
+
+                        matchFeedback.style.color =
+                            "#10b981";
+
+                        return true;
+                    }
+
+                    matchFeedback.textContent =
+                        "رمز عبور با تکرار آن مطابقت ندارد.";
+
+                    matchFeedback.style.color =
+                        "#ef4444";
+
+                    return false;
+                }
+
+                function normalizePhoneNumber() {
+                    phoneInput.value =
+                        convertToEnglishDigits(
+                            phoneInput.value
+                        ).replace(/\D/g, "");
+
+                    return phoneInput.value;
+                }
+
+                function validatePhoneNumber() {
+                    const phoneNumber =
+                        normalizePhoneNumber();
+
+                    if (!phoneNumber) {
+                        phoneFeedback.textContent = "";
+                        return false;
+                    }
+
+                    if (/^09\d{9}$/.test(phoneNumber)) {
+                        phoneFeedback.textContent =
+                            "شماره همراه معتبر است ✓";
+
+                        phoneFeedback.style.color =
+                            "#10b981";
+
+                        return true;
+                    }
+
+                    phoneFeedback.textContent =
+                        "شماره باید با 09 شروع شود و ۱۱ رقم باشد.";
+
+                    phoneFeedback.style.color =
+                        "#ef4444";
+
+                    return false;
+                }
+
+                function checkUsername() {
+                    const username =
+                        usernameInput.value.trim();
+
+                    usernameIsAvailable = null;
+
+                    if (!username) {
+                        usernameFeedback.textContent = "";
+                        return;
+                    }
+
+                    if (username.length < 3) {
+                        usernameFeedback.textContent =
+                            "نام کاربری باید حداقل ۳ کاراکتر باشد.";
+
+                        usernameFeedback.style.color =
+                            "#ef4444";
+
+                        usernameIsAvailable = false;
+                        return;
+                    }
+
+                    usernameFeedback.textContent =
+                        "در حال بررسی نام کاربری...";
+
+                    usernameFeedback.style.color =
+                        "#64748b";
+
+                    fetch(
+                        "{% url 'check_username' %}"
+                        + "?username="
+                        + encodeURIComponent(username),
+                        {
+                            method: "GET",
+                            headers: {
+                                "X-Requested-With":
+                                    "XMLHttpRequest",
+                            },
                         }
-                    })
-                    .catch(err => console.error("Error:", err));
-            }, 300);
-        });
-    });
+                    )
+                        .then(function (response) {
+                            if (!response.ok) {
+                                throw new Error(
+                                    "Username request failed"
+                                );
+                            }
+
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            if (
+                                usernameInput.value.trim()
+                                !== username
+                            ) {
+                                return;
+                            }
+
+                            if (data.exists) {
+                                usernameFeedback.textContent =
+                                    "این نام کاربری قبلاً استفاده شده است.";
+
+                                usernameFeedback.style.color =
+                                    "#ef4444";
+
+                                usernameIsAvailable = false;
+                            } else {
+                                usernameFeedback.textContent =
+                                    "این نام کاربری آزاد است ✓";
+
+                                usernameFeedback.style.color =
+                                    "#10b981";
+
+                                usernameIsAvailable = true;
+                            }
+                        })
+                        .catch(function () {
+                            usernameFeedback.textContent =
+                                "بررسی نام کاربری انجام نشد؛ "
+                                + "هنگام ثبت‌نام دوباره بررسی می‌شود.";
+
+                            usernameFeedback.style.color =
+                                "#f59e0b";
+
+                            usernameIsAvailable = null;
+                        });
+                }
+
+                usernameInput.addEventListener(
+                    "input",
+                    function () {
+                        window.clearTimeout(usernameTimer);
+
+                        usernameFeedback.textContent = "";
+                        usernameIsAvailable = null;
+
+                        usernameTimer = window.setTimeout(
+                            checkUsername,
+                            400
+                        );
+                    }
+                );
+
+                phoneInput.addEventListener(
+                    "input",
+                    validatePhoneNumber
+                );
+
+                passwordInput.addEventListener(
+                    "input",
+                    validatePassword
+                );
+
+                confirmInput.addEventListener(
+                    "input",
+                    validatePasswordMatch
+                );
+
+                form.addEventListener(
+                    "submit",
+                    function (event) {
+                        const username =
+                            usernameInput.value.trim();
+
+                        const phoneValid =
+                            validatePhoneNumber();
+
+                        const passwordValid =
+                            passwordIsValid();
+
+                        const passwordsMatch =
+                            validatePasswordMatch();
+
+                        if (!username) {
+                            event.preventDefault();
+
+                            usernameFeedback.textContent =
+                                "نام کاربری را وارد کنید.";
+
+                            usernameFeedback.style.color =
+                                "#ef4444";
+
+                            usernameInput.focus();
+                            return;
+                        }
+
+                        if (usernameIsAvailable === false) {
+                            event.preventDefault();
+                            usernameInput.focus();
+                            return;
+                        }
+
+                        if (!phoneValid) {
+                            event.preventDefault();
+                            phoneInput.focus();
+                            return;
+                        }
+
+                        if (!passwordValid) {
+                            event.preventDefault();
+                            passwordInput.focus();
+                            return;
+                        }
+
+                        if (!passwordsMatch) {
+                            event.preventDefault();
+                            confirmInput.focus();
+                            return;
+                        }
+
+                        submitButton.disabled = true;
+                        submitButton.textContent =
+                            "در حال ثبت‌نام...";
+                    }
+                );
+
+                validatePhoneNumber();
+                validatePassword();
+                validatePasswordMatch();
+            }
+        );
     </script>
 </body>
 </html>

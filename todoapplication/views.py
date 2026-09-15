@@ -1,13 +1,18 @@
 import re
+from datetime import timedelta
+from urllib.parse import urlencode
+
 import jdatetime
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from .forms import PhoneOTPRequestForm, PhoneOTPVerifyForm
 from .models import Todo, UserProfile
@@ -18,13 +23,7 @@ from .services.otp import (
     create_and_send_otp,
     verify_otp,
 )
-
-
-from datetime import timedelta
-from urllib.parse import urlencode
-
-from django.utils import timezone
-
+from .validators import validate_iranian_mobile
 
 
 def parse_jalali_date(value):
@@ -42,10 +41,6 @@ def parse_jalali_date(value):
         ).togregorian()
     except (ValueError, TypeError):
         return None
-
-
-
-
 
 
 def login_view(request):
@@ -66,6 +61,7 @@ def login_view(request):
             login(request, user)
 
             next_url = request.POST.get("next")
+
             if next_url:
                 return redirect(next_url)
 
@@ -76,61 +72,213 @@ def login_view(request):
             "نام کاربری یا رمز عبور صحیح نیست.",
         )
 
-    return render(request, "todoapplication/login.html")
+    return render(
+        request,
+        "todoapplication/login.html",
+    )
 
 
 def register_view(request):
     if request.user.is_authenticated:
         return redirect("home")
+
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
-        email = request.POST.get("email", "").strip()
+        phone_number_raw = request.POST.get(
+            "phone_number",
+            "",
+        ).strip()
         password = request.POST.get("password", "")
-        password_confirm = request.POST.get("password_confirm") or request.POST.get("confirm_password") or ""
+        password_confirm = (
+            request.POST.get("password_confirm")
+            or request.POST.get("confirm_password")
+            or ""
+        )
 
-        if not username or not password:
-            messages.error(request, "لطفاً تمامی فیلدهای الزامی را تکمیل کنید.")
-            return render(request, "todoapplication/register.html")
+        context = {
+            "entered_username": username,
+            "entered_phone_number": phone_number_raw,
+        }
+
+        if (
+            not username
+            or not phone_number_raw
+            or not password
+            or not password_confirm
+        ):
+            messages.error(
+                request,
+                "لطفاً تمامی فیلدهای الزامی را تکمیل کنید.",
+            )
+            return render(
+                request,
+                "todoapplication/register.html",
+                context,
+            )
+
+        try:
+            phone_number = validate_iranian_mobile(
+                phone_number_raw
+            )
+        except ValidationError as error:
+            messages.error(
+                request,
+                error.messages[0],
+            )
+            return render(
+                request,
+                "todoapplication/register.html",
+                context,
+            )
 
         if password != password_confirm:
-            messages.error(request, "رمز عبور با تکرار آن مطابقت ندارد.")
-            return render(request, "todoapplication/register.html")
+            messages.error(
+                request,
+                "رمز عبور با تکرار آن مطابقت ندارد.",
+            )
+            return render(
+                request,
+                "todoapplication/register.html",
+                context,
+            )
 
-        # اعتبارسنجی قدرت رمز عبور
         if len(password) < 8:
-            messages.error(request, "رمز عبور باید حداقل ۸ کاراکتر باشد.")
-            return render(request, "todoapplication/register.html")
-        if not re.search(r"[A-Z]", password) or not re.search(r"[a-z]", password):
-            messages.error(request, "رمز عبور باید شامل حروف بزرگ و کوچک انگلیسی باشد.")
-            return render(request, "todoapplication/register.html")
+            messages.error(
+                request,
+                "رمز عبور باید حداقل ۸ کاراکتر باشد.",
+            )
+            return render(
+                request,
+                "todoapplication/register.html",
+                context,
+            )
+
+        if (
+            not re.search(r"[A-Z]", password)
+            or not re.search(r"[a-z]", password)
+        ):
+            messages.error(
+                request,
+                "رمز عبور باید شامل حروف بزرگ و کوچک انگلیسی باشد.",
+            )
+            return render(
+                request,
+                "todoapplication/register.html",
+                context,
+            )
+
         if not re.search(r"[0-9]", password):
-            messages.error(request, "رمز عبور باید حداقل شامل یک عدد باشد.")
-            return render(request, "todoapplication/register.html")
+            messages.error(
+                request,
+                "رمز عبور باید حداقل شامل یک عدد باشد.",
+            )
+            return render(
+                request,
+                "todoapplication/register.html",
+                context,
+            )
+
         if not re.search(r"[!@#$%^&*?,._-]", password):
-            messages.error(request, "رمز عبور باید حداقل شامل یک نماد خاص (!@#$%^&*?...) باشد.")
-            return render(request, "todoapplication/register.html")
+            messages.error(
+                request,
+                "رمز عبور باید حداقل شامل یک نماد خاص باشد.",
+            )
+            return render(
+                request,
+                "todoapplication/register.html",
+                context,
+            )
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "این نام کاربری قبلاً استفاده شده است.")
-            return render(request, "todoapplication/register.html")
+        if User.objects.filter(
+            username__iexact=username,
+        ).exists():
+            messages.error(
+                request,
+                "این نام کاربری قبلاً استفاده شده است.",
+            )
+            return render(
+                request,
+                "todoapplication/register.html",
+                context,
+            )
 
-        user = User.objects.create_user(username=username, email=email, password=password)
-        login(request, user)
-        messages.success(request, f"خوش آمدید {username}! حساب شما با موفقیت ساخته شد.")
+        if UserProfile.objects.filter(
+            phone_number=phone_number,
+        ).exists():
+            messages.error(
+                request,
+                "این شماره همراه قبلاً ثبت‌نام کرده است.",
+            )
+            return render(
+                request,
+                "todoapplication/register.html",
+                context,
+            )
+
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=username,
+                    email="",
+                    password=password,
+                )
+
+                UserProfile.objects.create(
+                    user=user,
+                    phone_number=phone_number,
+                )
+
+        except IntegrityError:
+            messages.error(
+                request,
+                "نام کاربری یا شماره همراه قبلاً ثبت شده است.",
+            )
+            return render(
+                request,
+                "todoapplication/register.html",
+                context,
+            )
+
+        login(
+            request,
+            user,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
+
+        messages.success(
+            request,
+            f"خوش آمدید {username}! حساب شما با موفقیت ساخته شد.",
+        )
+
         return redirect("home")
 
-    return render(request, "todoapplication/register.html")
+    return render(
+        request,
+        "todoapplication/register.html",
+    )
 
 
 @login_required
 def home(request):
     if request.method == "POST":
         title = request.POST.get("title", "").strip()
-        description = request.POST.get("description", "").strip()
+        description = request.POST.get(
+            "description",
+            "",
+        ).strip()
 
-        start_date_text = request.POST.get("start_date", "").strip()
-        end_date_text = request.POST.get("end_date", "").strip()
-        deadline_text = request.POST.get("deadline", "").strip()
+        start_date_text = request.POST.get(
+            "start_date",
+            "",
+        ).strip()
+        end_date_text = request.POST.get(
+            "end_date",
+            "",
+        ).strip()
+        deadline_text = request.POST.get(
+            "deadline",
+            "",
+        ).strip()
 
         start_date = parse_jalali_date(start_date_text)
         end_date = parse_jalali_date(end_date_text)
@@ -150,7 +298,8 @@ def home(request):
         elif invalid_date:
             messages.error(
                 request,
-                "یکی از تاریخ‌ها معتبر نیست. نمونه صحیح: 1405/06/18",
+                "یکی از تاریخ‌ها معتبر نیست. "
+                "نمونه صحیح: 1405/06/18",
             )
         else:
             Todo.objects.create(
@@ -166,6 +315,7 @@ def home(request):
                 request,
                 "تسک با موفقیت اضافه شد.",
             )
+
             return redirect("home")
 
     pending_todos = Todo.objects.filter(
@@ -198,11 +348,16 @@ def add_to_google_calendar(request, todo_id):
         user=request.user,
     )
 
-    # اولویت تاریخ‌ها:
-    # شروع: start_date سپس deadline سپس امروز
-    # پایان: end_date سپس deadline سپس تاریخ شروع
-    start_date = todo.start_date or todo.deadline or timezone.localdate()
-    end_date = todo.end_date or todo.deadline or start_date
+    start_date = (
+        todo.start_date
+        or todo.deadline
+        or timezone.localdate()
+    )
+    end_date = (
+        todo.end_date
+        or todo.deadline
+        or start_date
+    )
 
     if end_date < start_date:
         messages.error(
@@ -213,10 +368,10 @@ def add_to_google_calendar(request, todo_id):
         )
         return redirect("home")
 
-    # رویداد تمام‌روزه گوگل، تاریخ پایان را به‌صورت غیرشامل می‌پذیرد.
     google_end_date = end_date + timedelta(days=1)
 
     details = todo.description.strip()
+
     if todo.deadline:
         deadline_text = todo.deadline.strftime("%Y-%m-%d")
         details = (
@@ -243,18 +398,16 @@ def add_to_google_calendar(request, todo_id):
     return redirect(google_calendar_url)
 
 
-
-
-
-
-
 @login_required
 def logout_view(request):
     logout(request)
-    messages.success(request, "با موفقیت از حساب کاربری خارج شدید.")
+
+    messages.success(
+        request,
+        "با موفقیت از حساب کاربری خارج شدید.",
+    )
+
     return redirect("login")
-
-
 
 
 @login_required
@@ -267,12 +420,20 @@ def toggle_todo(request, todo_id):
 
     if request.method == "POST":
         todo.is_completed = not todo.is_completed
-        todo.save(update_fields=["is_completed"])
+        todo.save(
+            update_fields=["is_completed"],
+        )
 
         if todo.is_completed:
-            messages.success(request, "تسک به بخش انجام‌شده منتقل شد.")
+            messages.success(
+                request,
+                "تسک به بخش انجام‌شده منتقل شد.",
+            )
         else:
-            messages.success(request, "تسک به بخش در انتظار منتقل شد.")
+            messages.success(
+                request,
+                "تسک به بخش در انتظار منتقل شد.",
+            )
 
     return redirect("home")
 
@@ -287,17 +448,33 @@ def delete_todo(request, todo_id):
 
     if request.method == "POST":
         todo.delete()
-        messages.success(request, "تسک با موفقیت حذف شد.")
+
+        messages.success(
+            request,
+            "تسک با موفقیت حذف شد.",
+        )
 
     return redirect("home")
 
 
 def check_username(request):
-    username = request.GET.get("username", "").strip()
+    username = request.GET.get(
+        "username",
+        "",
+    ).strip()
+
     if not username:
-        return JsonResponse({"exists": False})
-    exists = User.objects.filter(username__iexact=username).exists()
-    return JsonResponse({"exists": exists})
+        return JsonResponse(
+            {"exists": False},
+        )
+
+    exists = User.objects.filter(
+        username__iexact=username,
+    ).exists()
+
+    return JsonResponse(
+        {"exists": exists},
+    )
 
 
 def phone_login_request(request):
@@ -311,6 +488,28 @@ def phone_login_request(request):
     if request.method == "POST" and form.is_valid():
         phone_number = form.cleaned_data["phone_number"]
 
+        profile_exists = UserProfile.objects.filter(
+            phone_number=phone_number,
+        ).exists()
+
+        if not profile_exists:
+            request.session.pop(
+                "otp_phone_number",
+                None,
+            )
+
+            messages.error(
+                request,
+                "حسابی با این شماره همراه پیدا نشد. "
+                "ابتدا ثبت‌نام کنید.",
+            )
+
+            return render(
+                request,
+                "todoapplication/phone_otp_request.html",
+                {"form": form},
+            )
+
         try:
             create_and_send_otp(phone_number)
         except NotImplementedError:
@@ -319,11 +518,15 @@ def phone_login_request(request):
                 "سرویس پیامک هنوز پیکربندی نشده است.",
             )
         else:
-            request.session["otp_phone_number"] = phone_number
+            request.session["otp_phone_number"] = (
+                phone_number
+            )
+
             messages.success(
                 request,
                 "کد تأیید برای شماره همراه شما ارسال شد.",
             )
+
             return redirect("phone_otp_verify")
 
     return render(
@@ -337,7 +540,9 @@ def phone_otp_verify(request):
     if request.user.is_authenticated:
         return redirect("home")
 
-    phone_number = request.session.get("otp_phone_number")
+    phone_number = request.session.get(
+        "otp_phone_number"
+    )
 
     if not phone_number:
         messages.error(
@@ -357,59 +562,63 @@ def phone_otp_verify(request):
                 form.cleaned_data["code"],
             )
         except OTPExpiredError as error:
-            messages.error(request, str(error))
+            messages.error(
+                request,
+                str(error),
+            )
         except OTPAttemptsExceededError as error:
-            messages.error(request, str(error))
+            messages.error(
+                request,
+                str(error),
+            )
         except OTPInvalidError as error:
-            messages.error(request, str(error))
+            messages.error(
+                request,
+                str(error),
+            )
         else:
-            try:
-                with transaction.atomic():
-                    profile = (
-                        UserProfile.objects.select_related("user")
-                        .filter(phone_number=phone_number)
-                        .first()
-                    )
+            profile = (
+                UserProfile.objects
+                .select_related("user")
+                .filter(phone_number=phone_number)
+                .first()
+            )
 
-                    if profile is None:
-                        username = f"phone_{phone_number}"
+            if profile is None:
+                request.session.pop(
+                    "otp_phone_number",
+                    None,
+                )
 
-                        user, _ = User.objects.get_or_create(
-                            username=username,
-                            defaults={
-                                "email": "",
-                            },
-                        )
-
-                        user.set_unusable_password()
-                        user.save(update_fields=["password"])
-
-                        profile = UserProfile.objects.create(
-                            user=user,
-                            phone_number=phone_number,
-                        )
-                    else:
-                        user = profile.user
-
-            except IntegrityError:
                 messages.error(
                     request,
-                    "امکان ایجاد حساب کاربری وجود ندارد؛ دوباره تلاش کنید.",
+                    "حسابی با این شماره همراه پیدا نشد. "
+                    "ابتدا ثبت‌نام کنید.",
                 )
-                return redirect("phone_login")
+
+                return redirect("register")
+
+            user = profile.user
 
             login(
                 request,
                 user,
-                backend="django.contrib.auth.backends.ModelBackend",
+                backend=(
+                    "django.contrib.auth.backends."
+                    "ModelBackend"
+                ),
             )
 
-            request.session.pop("otp_phone_number", None)
+            request.session.pop(
+                "otp_phone_number",
+                None,
+            )
 
             messages.success(
                 request,
                 "با موفقیت وارد حساب کاربری شدید.",
             )
+
             return redirect("home")
 
     return render(

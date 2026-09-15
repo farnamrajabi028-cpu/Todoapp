@@ -26,7 +26,9 @@ class PhoneOTPRequestForm(forms.Form):
                 self.cleaned_data["phone_number"]
             )
         except ValidationError as error:
-            raise forms.ValidationError(error.messages) from error
+            raise forms.ValidationError(
+                error.messages
+            ) from error
 
 
 class PhoneOTPVerifyForm(forms.Form):
