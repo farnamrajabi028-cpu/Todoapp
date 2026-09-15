@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأیید کد پیامکی</title>
+</head>
+<body>
+    <main>
+        <h1>تأیید کد پیامکی</h1>
+
+        <p>
+            کد ارسال‌شده به
+            <strong dir="ltr">{{ phone_number }}</strong>
+            را وارد کنید.
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            {{ form.code.label_tag }}
+            {{ form.code }}
+
+            {% for error in form.code.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+
+            <button type="submit">تأیید و ورود</button>
+        </form>
+
+        <p>
+            <a href="{% url 'phone_login' %}">
+                اصلاح شماره یا دریافت کد جدید
+            </a>
+        </p>
+    </main>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود با شماره همراه</title>
+</head>
+<body>
+    <main>
+        <h1>ورود با شماره همراه</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            {{ form.phone_number.label_tag }}
+            {{ form.phone_number }}
+
+            {% for error in form.phone_number.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+
+            <button type="submit">ارسال کد تأیید</button>
+        </form>
+
+        <p>
+            <a href="{% url 'login' %}">
+                ورود با نام کاربری و رمز عبور
+            </a>
+        </p>
+    </main>
+</body>
+</html>

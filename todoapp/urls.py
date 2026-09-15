@@ -62,6 +62,20 @@ urlpatterns = [
     ),
 
 
+    # درخواست کد ورود پیامکی
+    path(
+        "login/phone/",
+        views.phone_login_request,
+        name="phone_login",
+    ),
+
+    # بررسی کد ورود پیامکی
+    path(
+        "login/phone/verify/",
+        views.phone_otp_verify,
+        name="phone_otp_verify",
+    ),
+
     # فرم درخواست بازیابی رمز عبور
     path(
         "password-reset/",

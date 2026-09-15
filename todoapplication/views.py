@@ -5,10 +5,19 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Todo
+from .forms import PhoneOTPRequestForm, PhoneOTPVerifyForm
+from .models import Todo, UserProfile
+from .services.otp import (
+    OTPAttemptsExceededError,
+    OTPExpiredError,
+    OTPInvalidError,
+    create_and_send_otp,
+    verify_otp,
+)
 
 
 from datetime import timedelta
@@ -289,3 +298,125 @@ def check_username(request):
         return JsonResponse({"exists": False})
     exists = User.objects.filter(username__iexact=username).exists()
     return JsonResponse({"exists": exists})
+
+
+def phone_login_request(request):
+    if request.user.is_authenticated:
+        return redirect("home")
+
+    form = PhoneOTPRequestForm(
+        request.POST or None,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        phone_number = form.cleaned_data["phone_number"]
+
+        try:
+            create_and_send_otp(phone_number)
+        except NotImplementedError:
+            messages.error(
+                request,
+                "سرویس پیامک هنوز پیکربندی نشده است.",
+            )
+        else:
+            request.session["otp_phone_number"] = phone_number
+            messages.success(
+                request,
+                "کد تأیید برای شماره همراه شما ارسال شد.",
+            )
+            return redirect("phone_otp_verify")
+
+    return render(
+        request,
+        "todoapplication/phone_otp_request.html",
+        {"form": form},
+    )
+
+
+def phone_otp_verify(request):
+    if request.user.is_authenticated:
+        return redirect("home")
+
+    phone_number = request.session.get("otp_phone_number")
+
+    if not phone_number:
+        messages.error(
+            request,
+            "ابتدا شماره همراه خود را وارد کنید.",
+        )
+        return redirect("phone_login")
+
+    form = PhoneOTPVerifyForm(
+        request.POST or None,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        try:
+            verify_otp(
+                phone_number,
+                form.cleaned_data["code"],
+            )
+        except OTPExpiredError as error:
+            messages.error(request, str(error))
+        except OTPAttemptsExceededError as error:
+            messages.error(request, str(error))
+        except OTPInvalidError as error:
+            messages.error(request, str(error))
+        else:
+            try:
+                with transaction.atomic():
+                    profile = (
+                        UserProfile.objects.select_related("user")
+                        .filter(phone_number=phone_number)
+                        .first()
+                    )
+
+                    if profile is None:
+                        username = f"phone_{phone_number}"
+
+                        user, _ = User.objects.get_or_create(
+                            username=username,
+                            defaults={
+                                "email": "",
+                            },
+                        )
+
+                        user.set_unusable_password()
+                        user.save(update_fields=["password"])
+
+                        profile = UserProfile.objects.create(
+                            user=user,
+                            phone_number=phone_number,
+                        )
+                    else:
+                        user = profile.user
+
+            except IntegrityError:
+                messages.error(
+                    request,
+                    "امکان ایجاد حساب کاربری وجود ندارد؛ دوباره تلاش کنید.",
+                )
+                return redirect("phone_login")
+
+            login(
+                request,
+                user,
+                backend="django.contrib.auth.backends.ModelBackend",
+            )
+
+            request.session.pop("otp_phone_number", None)
+
+            messages.success(
+                request,
+                "با موفقیت وارد حساب کاربری شدید.",
+            )
+            return redirect("home")
+
+    return render(
+        request,
+        "todoapplication/phone_otp_verify.html",
+        {
+            "form": form,
+            "phone_number": phone_number,
+        },
+    )
