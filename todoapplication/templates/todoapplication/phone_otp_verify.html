@@ -1,0 +1,80 @@
+{% load static %}
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>تأیید کد | مدیریت تسک ها</title>
+    <link
+      rel="stylesheet"
+      href="{% static 'todoapplication/auth_style.css' %}"
+    />
+  </head>
+  <body class="auth-body-phone">
+    <main class="auth-container">
+      <section class="auth-card">
+        <header class="auth-header">
+          <h1>وارد کردن کد</h1>
+          <p>
+            کد ۶ رقمی ارسال شده به شماره
+            <br />
+            <strong>{{ phone_number }}</strong>
+            را وارد کنید.
+          </p>
+        </header>
+
+        {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+          <div class="message {{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %} {% if form.non_field_errors %}
+          <div class="field-errors">
+            {% for error in form.non_field_errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div class="form-group">
+            <label for="id_code">کد تأیید</label>
+
+            <input
+              type="text"
+              name="code"
+              id="id_code"
+              class="otp-code-input"
+              maxlength="6"
+              inputmode="numeric"
+              pattern="[0-9۰-۹]{6}"
+              placeholder="******"
+              value="{{ form.code.value|default:'' }}"
+              required
+              autofocus
+            />
+
+            {% if form.code.errors %}
+            <div class="field-errors">
+              {% for error in form.code.errors %}
+              <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <button class="auth-button" type="submit">تأیید و ورود</button>
+        </form>
+
+        <div class="auth-links" style="margin-top: 24px; text-align: center">
+          <a class="auth-link" href="{% url 'phone_login' %}"
+            >درخواست مجدد کد</a
+          >
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

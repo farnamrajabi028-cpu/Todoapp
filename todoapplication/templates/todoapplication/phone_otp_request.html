@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>درخواست کد تأیید | مدیریت تسک ها</title>
+    <link rel="stylesheet" href="{% static 'todoapplication/auth_style.css' %}">
+</head>
+<body class="auth-body-phone">
+    <main class="auth-container">
+        <section class="auth-card">
+            <header class="auth-header">
+                <h1>تأیید شماره همراه</h1>
+                <p>یک کد ۶ رقمی برای شما ارسال خواهد شد.</p>
+            </header>
+
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="id_phone_number">شماره موبایل</label>
+                    <input type="text" name="phone_number" id="id_phone_number" 
+                           value="{{ form.phone_number.value|default:'' }}" 
+                           placeholder="0912XXXXXXX" required>
+                    {% if form.phone_number.errors %}
+                        <div class="field-errors">
+                            {% for error in form.phone_number.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button class="auth-button" type="submit">ارسال کد</button>
+            </form>
+
+            <div class="auth-links" style="margin-top: 24px;">
+                <a class="auth-link" href="{% url 'login' %}">بازگشت به ورود با نام کاربری</a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
