@@ -157,6 +157,63 @@
             color: #b45309;
             border: 1px solid #fcd34d;
         }
+    
+        .share-form-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #e2e8f0;
+        }
+        .share-form-row input[type="text"] {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.82rem;
+        }
+        .share-submit-btn {
+            background-color: #0891b2;
+            color: #ffffff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .share-submit-btn:hover {
+            background-color: #0e7490;
+        }
+        .shared-section {
+            max-width: 1400px;
+            margin: 28px auto 0 auto;
+            padding: 24px;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid #a5b4fc;
+            box-shadow: 0 10px 26px rgba(99, 102, 241, 0.15);
+        }
+        .shared-section h2 {
+            margin: 0 0 18px;
+            color: #4338ca;
+            font-size: 22px;
+        }
+        .shared-owner-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-inline-start: 6px;
+            background-color: #e0e7ff;
+            color: #3730a3;
+            border: 1px solid #c7d2fe;
+        }
     </style></head>
 
 <body>
@@ -392,6 +449,19 @@
 
                                 </div>
                             {% endif %}
+                            <form
+                                method="POST"
+                                action="{% url 'share_todo' todo.id %}"
+                                class="share-form-row"
+                            >
+                                {% csrf_token %}
+                                <input
+                                    type="text"
+                                    name="share_username"
+                                    placeholder="نام کاربری برای اشتراک‌گذاری"
+                                >
+                                <button type="submit" class="share-submit-btn">اشتراک</button>
+                            </form>
                         </div>
 
                         <div class="task-actions">
@@ -609,6 +679,34 @@
         </section>
 
     </main>
+
+    <section class="shared-section">
+        <h2>تسک‌های به اشتراک‌گذاشته‌شده با من</h2>
+
+        <div class="task-list">
+            {% for todo in shared_todos %}
+                <article class="task-card pending-card">
+                    <div class="task-content">
+                        <span class="shared-owner-tag">👤 از طرف: {{ todo.user.username }}</span>
+
+                        {% if todo.category %}
+                            <span class="task-category-badge" style="background-color: {{ todo.category.color }};">
+                                {{ todo.category.name }}
+                            </span>
+                        {% endif %}
+
+                        <h3>{{ todo.title }}</h3>
+
+                        {% if todo.description %}
+                            <p class="task-description">{{ todo.description }}</p>
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <p class="empty-message">هنوز کسی تسکی با شما به اشتراک نگذاشته است.</p>
+            {% endfor %}
+        </div>
+    </section>
 
     <script>
         const dateInputs = document.querySelectorAll(".date-input");

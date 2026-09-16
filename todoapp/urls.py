@@ -56,6 +56,12 @@ urlpatterns = [
     ),
 
     path(
+        "todo/<int:todo_id>/share/",
+        views.share_todo,
+        name="share_todo",
+    ),
+
+    path(
     "todo/<int:todo_id>/calendar/",
     views.add_to_google_calendar,
     name="add_to_google_calendar",

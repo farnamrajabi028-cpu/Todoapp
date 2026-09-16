@@ -120,6 +120,13 @@ class Todo(models.Model):
         verbose_name='تکرار',
     )
 
+    shared_with = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='shared_todos',
+        blank=True,
+        verbose_name='اشتراک‌گذاری شده با',
+    )
+
     reminder_enabled = models.BooleanField(
         default=False,
         verbose_name='یادآوری فعال',

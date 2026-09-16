@@ -404,11 +404,16 @@ def home(request):
     pending_todos = pending_paginator.get_page(pending_page_number)
     completed_todos = completed_paginator.get_page(completed_page_number)
 
+    shared_todos = Todo.objects.filter(
+        shared_with=request.user,
+    ).select_related("category", "user").order_by("-id")
+
     context = {
         "pending_todos": pending_todos,
         "completed_todos": completed_todos,
         "categories": user_categories,
         "search_query": search_query,
+        "shared_todos": shared_todos,
     }
 
     return render(
@@ -555,6 +560,39 @@ def delete_todo(request, todo_id):
             request,
             "تسک با موفقیت حذف شد.",
         )
+
+    return redirect("home")
+
+
+def share_todo(request, todo_id):
+    todo = get_object_or_404(
+        Todo,
+        id=todo_id,
+        user=request.user,
+    )
+
+    if request.method == "POST":
+        target_username = request.POST.get("share_username", "").strip()
+
+        if not target_username:
+            messages.error(request, "لطفاً نام کاربری را وارد کنید.")
+        elif target_username.lower() == request.user.username.lower():
+            messages.error(request, "نمی‌توانید تسک را با خودتان به اشتراک بگذارید.")
+        else:
+            target_user = User.objects.filter(
+                username__iexact=target_username,
+            ).first()
+
+            if target_user is None:
+                messages.error(request, "کاربری با این نام کاربری پیدا نشد.")
+            elif todo.shared_with.filter(id=target_user.id).exists():
+                messages.error(request, "این تسک قبلاً با این کاربر به اشتراک گذاشته شده است.")
+            else:
+                todo.shared_with.add(target_user)
+                messages.success(
+                    request,
+                    f"تسک با {target_user.username} به اشتراک گذاشته شد.",
+                )
 
     return redirect("home")
 
