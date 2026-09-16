@@ -214,20 +214,38 @@
             color: #3730a3;
             border: 1px solid #c7d2fe;
         }
+    
+        .alert {
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 0.9rem;
+        }
+        .alert-success {
+            background-color: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+        .alert-error {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
     </style></head>
 
 <body>
 
     {% if messages %}
-        {% for message in messages %}
-            {% if "calendar-date-error" in message.tags %}
-                <div class="messages-container">
-                    <div class="alert alert-error">
-                        {{ message }}
-                    </div>
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="alert {% if 'error' in message.tags %}alert-error{% else %}alert-success{% endif %}">
+                    {{ message }}
                 </div>
-            {% endif %}
-        {% endfor %}
+            {% endfor %}
+        </div>
     {% endif %}
 
 <header class="page-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; margin-bottom: 20px;">
