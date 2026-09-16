@@ -2,6 +2,37 @@ from django.conf import settings
 from django.db import models
 
 
+class Category(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="categories",
+        verbose_name="کاربر",
+    )
+    name = models.CharField(
+        max_length=50,
+        verbose_name="نام دسته‌بندی",
+    )
+    color = models.CharField(
+        max_length=20,
+        default="#7c3aed",
+        verbose_name="رنگ برچسب",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="زمان ایجاد",
+    )
+
+    class Meta:
+        verbose_name = "دسته‌بندی"
+        verbose_name_plural = "دسته‌بندی‌ها"
+        unique_together = ("user", "name")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Todo(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -10,6 +41,15 @@ class Todo(models.Model):
         verbose_name="کاربر",
         null=True,
         blank=True,
+    )
+
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="todos",
+        verbose_name="دسته‌بندی",
     )
 
     title = models.CharField(
@@ -57,8 +97,6 @@ class Todo(models.Model):
 
     def __str__(self):
         return self.title
-
-
 
 
 class UserProfile(models.Model):

@@ -16,7 +16,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .forms import PhoneOTPRequestForm, PhoneOTPVerifyForm
-from .models import Todo, UserProfile
+from .models import Category, Todo, UserProfile
 from .services.otp import (
     OTPAttemptsExceededError,
     OTPExpiredError,
@@ -260,7 +260,6 @@ def register_view(request):
 
 
 @login_required
-@login_required
 def home(request):
     if request.method == "POST":
         title = request.POST.get("title", "").strip()
@@ -268,6 +267,10 @@ def home(request):
             "description",
             "",
         ).strip()
+
+        category_name = request.POST.get("category_name", "").strip()
+        category_id = request.POST.get("category_id", "").strip()
+        category_color = request.POST.get("category_color", "#7c3aed").strip()
 
         start_date_text = request.POST.get(
             "start_date",
@@ -304,8 +307,22 @@ def home(request):
                 "نمونه صحیح: 1405/06/18",
             )
         else:
+            category = None
+            if category_name:
+                category, _ = Category.objects.get_or_create(
+                    user=request.user,
+                    name=category_name,
+                    defaults={"color": category_color},
+                )
+            elif category_id:
+                category = Category.objects.filter(
+                    id=category_id,
+                    user=request.user,
+                ).first()
+
             Todo.objects.create(
                 user=request.user,
+                category=category,
                 title=title,
                 description=description,
                 start_date=start_date,
@@ -320,15 +337,17 @@ def home(request):
 
             return redirect("home")
 
+    user_categories = Category.objects.filter(user=request.user).order_by("name")
+
     pending_list = Todo.objects.filter(
         user=request.user,
         is_completed=False,
-    ).order_by("-id")
+    ).select_related("category").order_by("-id")
 
     completed_list = Todo.objects.filter(
         user=request.user,
         is_completed=True,
-    ).order_by("-id")
+    ).select_related("category").order_by("-id")
 
     pending_paginator = Paginator(pending_list, 5)
     completed_paginator = Paginator(completed_list, 5)
@@ -342,6 +361,7 @@ def home(request):
     context = {
         "pending_todos": pending_todos,
         "completed_todos": completed_todos,
+        "categories": user_categories,
     }
 
     return render(

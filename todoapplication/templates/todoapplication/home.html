@@ -71,6 +71,34 @@
                     rows="4"
                 ></textarea>
 
+                <div class="category-select-group">
+                    <label>دسته‌بندی (اختیاری)</label>
+                    {% if categories %}
+                    <select name="category_id" id="category_id" style="margin-bottom: 6px;">
+                        <option value="">-- انتخاب از دسته‌بندی‌های قبلی --</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+
+                    <div class="category-row">
+                        <input
+                            type="text"
+                            name="category_name"
+                            placeholder="یا نام دسته‌بندی جدید..."
+                            maxlength="50"
+                        >
+                        <input
+                            type="color"
+                            name="category_color"
+                            value="#7c3aed"
+                            title="انتخاب رنگ دسته‌بندی"
+                            class="color-picker-input"
+                        >
+                    </div>
+                </div>
+
                 <label for="start_date">تاریخ شروع (اختیاری)</label>
                 <input
                     type="text"
@@ -129,6 +157,11 @@
                     <article class="task-card pending-card">
 
                         <div class="task-content">
+                            {% if todo.category %}
+                                <span class="task-category-badge" style="background-color: {{ todo.category.color }};">
+                                    {{ todo.category.name }}
+                                </span>
+                            {% endif %}
                             <h3>{{ todo.title }}</h3>
 
                             {% if todo.description %}
@@ -263,6 +296,11 @@
                     <article class="task-card completed-card">
 
                         <div class="task-content">
+                            {% if todo.category %}
+                                <span class="task-category-badge" style="background-color: {{ todo.category.color }};">
+                                    {{ todo.category.name }}
+                                </span>
+                            {% endif %}
                             <h3>{{ todo.title }}</h3>
 
                             {% if todo.description %}
