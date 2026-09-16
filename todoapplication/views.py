@@ -1,3 +1,4 @@
+from django.db.models import Q
 import re
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -339,15 +340,25 @@ def home(request):
 
     user_categories = Category.objects.filter(user=request.user).order_by("name")
 
+    search_query = request.GET.get("q", "").strip()
+
     pending_list = Todo.objects.filter(
         user=request.user,
         is_completed=False,
-    ).select_related("category").order_by("-id")
+    ).select_related("category")
 
     completed_list = Todo.objects.filter(
         user=request.user,
         is_completed=True,
-    ).select_related("category").order_by("-id")
+    ).select_related("category")
+
+    if search_query:
+        search_filter = Q(title__icontains=search_query) | Q(description__icontains=search_query)
+        pending_list = pending_list.filter(search_filter)
+        completed_list = completed_list.filter(search_filter)
+
+    pending_list = pending_list.order_by("-id")
+    completed_list = completed_list.order_by("-id")
 
     pending_paginator = Paginator(pending_list, 5)
     completed_paginator = Paginator(completed_list, 5)
@@ -362,6 +373,7 @@ def home(request):
         "pending_todos": pending_todos,
         "completed_todos": completed_todos,
         "categories": user_categories,
+        "search_query": search_query,
     }
 
     return render(

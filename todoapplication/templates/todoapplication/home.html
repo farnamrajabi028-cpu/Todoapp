@@ -16,7 +16,55 @@
         rel="stylesheet"
         href="{% static 'todoapplication/style.css' %}"
     >
-</head>
+<style>
+
+.search-wrapper {
+    max-width: 650px;
+    margin: 15px auto 25px auto;
+    padding: 0 10px;
+    width: 100%;
+}
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    padding: 8px 14px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+    border: 1.5px solid #e2e8f0;
+}
+.search-box input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: #1e293b;
+    padding: 6px 8px;
+}
+.search-submit-btn {
+    background-color: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+}
+.search-reset-btn {
+    background-color: #f1f5f9;
+    color: #ef4444;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+</style></head>
 
 <body>
 
@@ -35,6 +83,8 @@
 <header class="page-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; margin-bottom: 20px;">
         <div>
             <h1 style="margin: 0 0 5px 0;">مدیریت تسک‌ها</h1>
+
+
             <p style="margin: 0; color: #64748b;">تسک‌های خود را به‌سادگی مدیریت کنید</p>
         </div>
         {% if user.is_authenticated %}
@@ -44,6 +94,16 @@
         </div>
         {% endif %}
     </header>
+
+<div class="search-wrapper">
+    <form method="GET" action="" class="search-box">
+        <input type="text" name="q" value="{{ search_query|default:'' }}" placeholder="🔍 جستجو در عنوان یا توضیحات تسک‌ها...">
+        <button type="submit" class="search-submit-btn">جستجو</button>
+        {% if search_query %}
+            <a href="{% url 'home' %}" class="search-reset-btn">✕ پاک کردن فیلتر</a>
+        {% endif %}
+    </form>
+</div>
 
     <main class="todo-layout">
 
