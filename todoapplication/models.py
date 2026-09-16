@@ -120,6 +120,11 @@ class Todo(models.Model):
         verbose_name='تکرار',
     )
 
+    reminder_enabled = models.BooleanField(
+        default=False,
+        verbose_name='یادآوری فعال',
+    )
+
     deadline = models.DateField(
         null=True,
         blank=True,
@@ -130,6 +135,19 @@ class Todo(models.Model):
         ordering = ["-created_at"]
         verbose_name = "تسک"
         verbose_name_plural = "تسک‌ها"
+
+    @property
+    def is_reminder_due(self):
+        if not self.reminder_enabled or self.is_completed:
+            return False
+
+        from django.utils import timezone
+
+        reference_date = self.deadline or self.start_date
+        if reference_date is None:
+            return False
+
+        return reference_date <= timezone.localdate()
 
     def __str__(self):
         return self.title

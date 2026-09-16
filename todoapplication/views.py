@@ -300,6 +300,8 @@ def home(request):
         if repeat_type not in ["none", "daily", "weekly", "monthly"]:
             repeat_type = "none"
 
+        reminder_enabled = request.POST.get("reminder_enabled") == "on"
+
         start_date_text = request.POST.get(
             "start_date",
             "",
@@ -356,6 +358,7 @@ def home(request):
                 category=category,
                 priority=priority,
                 repeat_type=repeat_type,
+                reminder_enabled=reminder_enabled,
                 title=title,
                 description=description,
                 start_date=start_date,
