@@ -236,6 +236,20 @@
                     </p>
 
                 {% endfor %}
+
+                {% if pending_todos.has_other_pages %}
+                <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 15px; direction: rtl;">
+                    {% if pending_todos.has_previous %}
+                        <a href="?pending_page={{ pending_todos.previous_page_number }}{% if request.GET.completed_page %}&completed_page={{ request.GET.completed_page }}{% endif %}" style="padding: 4px 10px; border: 1px solid #ccc; border-radius: 5px; text-decoration: none; color: #333;">قبلی</a>
+                    {% endif %}
+                    
+                    <span style="font-size: 13px; color: #555;">صفحه {{ pending_todos.number }} از {{ pending_todos.paginator.num_pages }}</span>
+                    
+                    {% if pending_todos.has_next %}
+                        <a href="?pending_page={{ pending_todos.next_page_number }}{% if request.GET.completed_page %}&completed_page={{ request.GET.completed_page }}{% endif %}" style="padding: 4px 10px; border: 1px solid #ccc; border-radius: 5px; text-decoration: none; color: #333;">بعدی</a>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
         </section>
 
@@ -336,6 +350,20 @@
                     </p>
 
                 {% endfor %}
+
+                {% if completed_todos.has_other_pages %}
+                <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 15px; direction: rtl;">
+                    {% if completed_todos.has_previous %}
+                        <a href="?completed_page={{ completed_todos.previous_page_number }}{% if request.GET.pending_page %}&pending_page={{ request.GET.pending_page }}{% endif %}" style="padding: 4px 10px; border: 1px solid #ccc; border-radius: 5px; text-decoration: none; color: #333;">قبلی</a>
+                    {% endif %}
+                    
+                    <span style="font-size: 13px; color: #555;">صفحه {{ completed_todos.number }} از {{ completed_todos.paginator.num_pages }}</span>
+                    
+                    {% if completed_todos.has_next %}
+                        <a href="?completed_page={{ completed_todos.next_page_number }}{% if request.GET.pending_page %}&pending_page={{ request.GET.pending_page }}{% endif %}" style="padding: 4px 10px; border: 1px solid #ccc; border-radius: 5px; text-decoration: none; color: #333;">بعدی</a>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
         </section>
 

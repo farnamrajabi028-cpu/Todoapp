@@ -9,6 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -259,6 +260,7 @@ def register_view(request):
 
 
 @login_required
+@login_required
 def home(request):
     if request.method == "POST":
         title = request.POST.get("title", "").strip()
@@ -318,15 +320,24 @@ def home(request):
 
             return redirect("home")
 
-    pending_todos = Todo.objects.filter(
+    pending_list = Todo.objects.filter(
         user=request.user,
         is_completed=False,
-    )
+    ).order_by("-id")
 
-    completed_todos = Todo.objects.filter(
+    completed_list = Todo.objects.filter(
         user=request.user,
         is_completed=True,
-    )
+    ).order_by("-id")
+
+    pending_paginator = Paginator(pending_list, 5)
+    completed_paginator = Paginator(completed_list, 5)
+
+    pending_page_number = request.GET.get("pending_page")
+    completed_page_number = request.GET.get("completed_page")
+
+    pending_todos = pending_paginator.get_page(pending_page_number)
+    completed_todos = completed_paginator.get_page(completed_page_number)
 
     context = {
         "pending_todos": pending_todos,
