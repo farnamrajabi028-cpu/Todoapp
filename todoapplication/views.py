@@ -45,6 +45,26 @@ def parse_jalali_date(value):
         return None
 
 
+import calendar
+
+
+def add_one_month(source_date):
+    if source_date is None:
+        return None
+
+    month = source_date.month + 1
+    year = source_date.year
+
+    if month > 12:
+        month = 1
+        year += 1
+
+    last_day = calendar.monthrange(year, month)[1]
+    day = min(source_date.day, last_day)
+
+    return source_date.replace(year=year, month=month, day=day)
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("home")
@@ -276,6 +296,10 @@ def home(request):
         if priority not in ["low", "medium", "high"]:
             priority = "medium"
 
+        repeat_type = request.POST.get("repeat_type", "none").strip()
+        if repeat_type not in ["none", "daily", "weekly", "monthly"]:
+            repeat_type = "none"
+
         start_date_text = request.POST.get(
             "start_date",
             "",
@@ -331,6 +355,7 @@ def home(request):
                 user=request.user,
                 category=category,
                 priority=priority,
+                repeat_type=repeat_type,
                 title=title,
                 description=description,
                 start_date=start_date,
@@ -469,6 +494,7 @@ def toggle_todo(request, todo_id):
     )
 
     if request.method == "POST":
+        was_completed = todo.is_completed
         todo.is_completed = not todo.is_completed
         todo.save(
             update_fields=["is_completed"],
@@ -479,6 +505,29 @@ def toggle_todo(request, todo_id):
                 request,
                 "تسک به بخش انجام‌شده منتقل شد.",
             )
+
+            if not was_completed and todo.repeat_type != "none":
+                def shift_date(value):
+                    if value is None:
+                        return None
+                    if todo.repeat_type == "daily":
+                        return value + timedelta(days=1)
+                    if todo.repeat_type == "weekly":
+                        return value + timedelta(weeks=1)
+                    return add_one_month(value)
+
+                Todo.objects.create(
+                    user=todo.user,
+                    category=todo.category,
+                    priority=todo.priority,
+                    repeat_type=todo.repeat_type,
+                    title=todo.title,
+                    description=todo.description,
+                    is_completed=False,
+                    start_date=shift_date(todo.start_date),
+                    end_date=shift_date(todo.end_date),
+                    deadline=shift_date(todo.deadline),
+                )
         else:
             messages.success(
                 request,

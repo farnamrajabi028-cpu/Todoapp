@@ -101,6 +101,25 @@ class Todo(models.Model):
         verbose_name='اولویت',
     )
 
+    REPEAT_NONE = 'none'
+    REPEAT_DAILY = 'daily'
+    REPEAT_WEEKLY = 'weekly'
+    REPEAT_MONTHLY = 'monthly'
+
+    REPEAT_CHOICES = [
+        (REPEAT_NONE, 'بدون تکرار'),
+        (REPEAT_DAILY, 'روزانه'),
+        (REPEAT_WEEKLY, 'هفتگی'),
+        (REPEAT_MONTHLY, 'ماهانه'),
+    ]
+
+    repeat_type = models.CharField(
+        max_length=10,
+        choices=REPEAT_CHOICES,
+        default=REPEAT_NONE,
+        verbose_name='تکرار',
+    )
+
     deadline = models.DateField(
         null=True,
         blank=True,
