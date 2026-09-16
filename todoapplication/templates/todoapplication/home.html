@@ -703,7 +703,7 @@
 
         <div class="task-list">
             {% for todo in shared_todos %}
-                <article class="task-card pending-card">
+                <article class="task-card pending-card{% if todo.is_completed %} completed-card{% endif %}">
                     <div class="task-content">
                         <span class="shared-owner-tag">👤 از طرف: {{ todo.user.username }}</span>
 
@@ -718,6 +718,19 @@
                         {% if todo.description %}
                             <p class="task-description">{{ todo.description }}</p>
                         {% endif %}
+                    </div>
+
+                    <div class="task-actions">
+                        <form
+                            method="POST"
+                            action="{% url 'toggle_todo' todo.id %}"
+                            class="task-action"
+                        >
+                            {% csrf_token %}
+                            <button type="submit" class="{% if todo.is_completed %}undo-button{% else %}complete-button{% endif %}">
+                                {% if todo.is_completed %}بازگردانی{% else %}انجام شد{% endif %}
+                            </button>
+                        </form>
                     </div>
                 </article>
             {% empty %}

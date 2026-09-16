@@ -496,9 +496,10 @@ def logout_view(request):
 @login_required
 def toggle_todo(request, todo_id):
     todo = get_object_or_404(
-        Todo,
+        Todo.objects.filter(
+            Q(user=request.user) | Q(shared_with=request.user)
+        ),
         id=todo_id,
-        user=request.user,
     )
 
     if request.method == "POST":
