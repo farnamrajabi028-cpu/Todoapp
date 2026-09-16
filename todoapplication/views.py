@@ -272,6 +272,9 @@ def home(request):
         category_name = request.POST.get("category_name", "").strip()
         category_id = request.POST.get("category_id", "").strip()
         category_color = request.POST.get("category_color", "#7c3aed").strip()
+        priority = request.POST.get("priority", "medium").strip()
+        if priority not in ["low", "medium", "high"]:
+            priority = "medium"
 
         start_date_text = request.POST.get(
             "start_date",
@@ -324,6 +327,7 @@ def home(request):
             Todo.objects.create(
                 user=request.user,
                 category=category,
+                priority=priority,
                 title=title,
                 description=description,
                 start_date=start_date,

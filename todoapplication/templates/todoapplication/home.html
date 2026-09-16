@@ -64,7 +64,33 @@
     white-space: nowrap;
 }
 
-</style></head>
+
+        /* Priority Badges */
+        .priority-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .priority-low {
+            background-color: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+        .priority-medium {
+            background-color: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fde68a;
+        }
+        .priority-high {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+    </style></head>
 
 <body>
 
@@ -130,6 +156,15 @@
                     placeholder="توضیحات تسک را وارد کنید"
                     rows="4"
                 ></textarea>
+
+                <div class="priority-select-group">
+                    <label for="priority">اولویت</label>
+                    <select name="priority" id="priority">
+                        <option value="low">🟢 پایین</option>
+                        <option value="medium" selected>🟡 متوسط</option>
+                        <option value="high">🔴 بالا (فوری)</option>
+                    </select>
+                </div>
 
                 <div class="category-select-group">
                     <label>دسته‌بندی (اختیاری)</label>
@@ -221,6 +256,13 @@
                                 <span class="task-category-badge" style="background-color: {{ todo.category.color }};">
                                     {{ todo.category.name }}
                                 </span>
+                            {% endif %}
+                            {% if todo.priority == 'high' %}
+                                <span class="priority-badge priority-high">🔴 بالا</span>
+                            {% elif todo.priority == 'low' %}
+                                <span class="priority-badge priority-low">🟢 پایین</span>
+                            {% else %}
+                                <span class="priority-badge priority-medium">🟡 متوسط</span>
                             {% endif %}
                             <h3>{{ todo.title }}</h3>
 
@@ -360,6 +402,13 @@
                                 <span class="task-category-badge" style="background-color: {{ todo.category.color }};">
                                     {{ todo.category.name }}
                                 </span>
+                            {% endif %}
+                            {% if todo.priority == 'high' %}
+                                <span class="priority-badge priority-high">🔴 بالا</span>
+                            {% elif todo.priority == 'low' %}
+                                <span class="priority-badge priority-low">🟢 پایین</span>
+                            {% else %}
+                                <span class="priority-badge priority-medium">🟡 متوسط</span>
                             {% endif %}
                             <h3>{{ todo.title }}</h3>
 

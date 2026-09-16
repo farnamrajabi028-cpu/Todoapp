@@ -84,6 +84,23 @@ class Todo(models.Model):
         verbose_name="تاریخ پایان",
     )
 
+    PRIORITY_LOW = 'low'
+    PRIORITY_MEDIUM = 'medium'
+    PRIORITY_HIGH = 'high'
+
+    PRIORITY_CHOICES = [
+        (PRIORITY_LOW, 'پایین'),
+        (PRIORITY_MEDIUM, 'متوسط'),
+        (PRIORITY_HIGH, 'بالا'),
+    ]
+
+    priority = models.CharField(
+        max_length=10,
+        choices=PRIORITY_CHOICES,
+        default=PRIORITY_MEDIUM,
+        verbose_name='اولویت',
+    )
+
     deadline = models.DateField(
         null=True,
         blank=True,
