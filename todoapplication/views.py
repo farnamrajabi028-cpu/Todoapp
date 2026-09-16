@@ -313,11 +313,14 @@ def home(request):
         else:
             category = None
             if category_name:
-                category, _ = Category.objects.get_or_create(
+                category, created = Category.objects.get_or_create(
                     user=request.user,
                     name=category_name,
                     defaults={"color": category_color},
                 )
+                if not created and category.color != category_color:
+                    category.color = category_color
+                    category.save(update_fields=["color"])
             elif category_id:
                 category = Category.objects.filter(
                     id=category_id,
