@@ -62,6 +62,12 @@ urlpatterns = [
     ),
 
     path(
+        "todo/<int:todo_id>/comment/",
+        views.add_todo_comment,
+        name="add_todo_comment",
+    ),
+
+    path(
     "todo/<int:todo_id>/calendar/",
     views.add_to_google_calendar,
     name="add_to_google_calendar",

@@ -17,7 +17,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .forms import PhoneOTPRequestForm, PhoneOTPVerifyForm
-from .models import Category, Todo, UserProfile
+from .models import Category, Todo, TodoComment, UserProfile
 from .services.otp import (
     OTPAttemptsExceededError,
     OTPExpiredError,
@@ -594,6 +594,30 @@ def share_todo(request, todo_id):
                     request,
                     f"تسک با {target_user.username} به اشتراک گذاشته شد.",
                 )
+
+    return redirect("home")
+
+
+def add_todo_comment(request, todo_id):
+    todo = get_object_or_404(
+        Todo.objects.filter(
+            Q(user=request.user) | Q(shared_with=request.user)
+        ),
+        id=todo_id,
+    )
+
+    if request.method == "POST":
+        text = request.POST.get("comment_text", "").strip()
+
+        if not text:
+            messages.error(request, "متن یادداشت نمی‌تواند خالی باشد.")
+        else:
+            TodoComment.objects.create(
+                todo=todo,
+                user=request.user,
+                text=text,
+            )
+            messages.success(request, "یادداشت ثبت شد.")
 
     return redirect("home")
 

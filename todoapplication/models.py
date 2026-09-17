@@ -160,6 +160,40 @@ class Todo(models.Model):
         return self.title
 
 
+class TodoComment(models.Model):
+    todo = models.ForeignKey(
+        Todo,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='تسک',
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='todo_comments',
+        verbose_name='کاربر',
+    )
+
+    text = models.CharField(
+        max_length=300,
+        verbose_name='متن یادداشت',
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='زمان ثبت',
+    )
+
+    class Meta:
+        ordering = ['created_at']
+        verbose_name = 'یادداشت تسک'
+        verbose_name_plural = 'یادداشت‌های تسک'
+
+    def __str__(self):
+        return f'{self.user.username}: {self.text[:30]}'
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
